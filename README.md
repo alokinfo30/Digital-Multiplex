@@ -17,11 +17,25 @@ This project creates a Digital Multiplex where users can watch movies, listen to
 The entire platform is built as a Flask web application with a modern, responsive UI.
 
 
+User Accounts & Session Management (Flask‑Login)
+Database (SQLite/PostgreSQL) for users, history, preferences
+Real Movie Data from TMDB API
+Translation API (Google Cloud Translation or LibreTranslate)
+New Content Types: Documentaries & Podcasts
+Full Responsive UI (mobile‑first)
+Add authentication checks for certain routes (e.g., saving history).
+Integrate TMDB for movies: when user selects 'movie', we can either generate a CrewAI movie or fetch a real movie from TMDB. We'll make a hybrid: if TMDB API key is present, we return real movie details; else fallback to generation.
+Use translation API for any content.
+User authentication with session management
+Persistent storage of user history and preferences
+Real movie data from TMDB (with fallback to AI generation)
+High‑quality translation via Google Translate
+Two new content types: Documentaries and Podcasts
+Fully responsive UI for both mobile and laptop
 
 
 Project Structure
 
-```
 DigitalMultiplex/
 ├── app/
 │   ├── __init__.py
@@ -30,45 +44,35 @@ DigitalMultiplex/
 │   ├── agents.py
 │   ├── tasks.py
 │   ├── crew.py
+│   ├── models.py          # NEW – database models
+│   ├── auth.py            # NEW – user authentication
+│   ├── tmdb.py            # NEW – TMDB integration
+│   ├── translate.py       # NEW – translation API
 │   └── utils.py
 ├── templates/
-│   └── index.html
+│   ├── index.html         (modified)
+│   ├── login.html         # NEW
+│   ├── register.html      # NEW
+│   └── profile.html       # NEW
 ├── static/
 │   ├── css/
-│   │   └── style.css
+│   │   └── style.css      (modified)
 │   └── js/
-│       └── script.js
-├── data/
-│   └── .gitkeep
-├── .env
+│       └── script.js      (modified)
+├── data/                  (database file will go here)
+├── .env                   (updated)
 ├── .gitignore
-├── requirements.txt
+├── requirements.txt       (updated)
 ├── run.py
 └── README.md
 
-Model Manager
 
-module centralizes OpenRouter client setup, model fallback, and agent‑specific model selection.
-,
-
+Model Manager, module centralizes OpenRouter client setup, model fallback, and agent‑specific model selection.
 We create four agents, each with a specific role and backstory, and assign them different models.
-
-
 Each task describes what the agent should produce.
-
-
 We create a MultiplexCrew class that orchestrates the entire content generation pipeline, including asynchronous handling (using threading to run multiple crews in parallel if needed).
-
-Build the Flask Application (main.py)
-This handles web routes, serves the frontend, and manages asynchronous generation requests.
-
-
-
-Frontend – JavaScript (static/js/script.js)
-
-Handles tab switching, age/language selection, AJAX requests, and polling for async results.
-
-
+Build the Flask Application (main.py), This handles web routes, serves the frontend, and manages asynchronous generation requests.
+Frontend – JavaScript (static/js/script.js), Handles tab switching, age/language selection, AJAX requests, and polling for async results.
 
 
 How It Works
@@ -79,7 +83,7 @@ How It Works
 4. The client polls /api/result/<job_id> until the content is ready, then displays it.
 5. The user can switch tabs or change preferences at any time, and new content will be generated asynchronously.
 
----
+
 
 Multi‑Model Fallback
 
