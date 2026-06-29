@@ -34,6 +34,8 @@ Fully responsive UI for both mobile and laptop
 
 Project Structure
 
+
+
 DigitalMultiplex/
 ├── app/
 │   ├── __init__.py
@@ -63,6 +65,26 @@ DigitalMultiplex/
 ├── requirements.txt       (updated)
 ├── run.py
 └── README.md
+
+
+Run Migrations
+Initialize database:
+
+bash
+flask db init
+flask db migrate -m "initial"
+flask db upgrade
+Or simply run the app once – db.create_all() will create tables.
+
+Final Step: Run the Application
+
+cd DigitalMultiplex
+python -m venv venv
+source venv/bin/activate  # or .\venv\Scripts\activate
+pip install -r requirements.txt
+python run.py
+Then open http://localhost:5000 in your browser.
+
 
 
 Model Manager, module centralizes OpenRouter client setup, model fallback, and agent‑specific model selection.
