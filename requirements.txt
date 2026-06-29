@@ -1,0 +1,12 @@
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Flask-Migrate
+python-dotenv
+crewai
+crewai_tools
+langchain_community
+langchain-openai
+openai
+flask-cors
+requests

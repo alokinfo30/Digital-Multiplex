@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🎬 Digital Multiplex</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>🎬 Digital Multiplex</h1>
+                <div class="auth-buttons">
+                    {% if current_user.is_authenticated %}
+                        <span class="user-greeting">👋 {{ current_user.username }}</span>
+                        <a href="{{ url_for('auth.logout') }}" class="btn-auth btn-logout">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn-auth btn-login">Login</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn-auth btn-register">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+            <p class="subtitle">Your AI‑powered movie, song, radio, documentary & podcast hub for all ages</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="ageGroup">👤 Age Group</label>
+                <select id="ageGroup">
+                    <option value="baby">👶 Baby</option>
+                    <option value="young_adult" selected>🧑 Young Adult</option>
+                    <option value="senior">👴 Senior</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="language">🌐 Language</label>
+                <select id="language"></select>
+            </div>
+        </div>
+
+        <nav class="tabs">
+            <button class="tab active" data-type="movie">🎥 Movies</button>
+            <button class="tab" data-type="song">🎵 Songs</button>
+            <button class="tab" data-type="radio">📻 Radio</button>
+            <button class="tab" data-type="documentary">📽️ Docs</button>
+            <button class="tab" data-type="podcast">🎙️ Podcasts</button>
+        </nav>
+
+        <div id="contentDisplay">
+            <div class="placeholder">
+                <span class="placeholder-icon">🎬</span>
+                <p>Select a tab to start exploring</p>
+                <p class="placeholder-sub">AI will generate content tailored for your age group</p>
+            </div>
+        </div>
+
+        <div id="loading" style="display:none;">
+            <div class="spinner"></div>
+            <p>Generating your content… <span id="loaderDots">.</span></p>
+        </div>
+
+        <footer>
+            <p>🏢 Digital Multiplex — Powered by CrewAI & OpenRouter</p>
+            <p class="footer-sub">All content generated on‑the‑fly for your enjoyment</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
