@@ -65,6 +65,17 @@ DigitalMultiplex/
 └── README.md
 
 
+Final Step: Run the Application
+
+cd DigitalMultiplex
+python -m venv venv
+source venv/bin/activate  # or .\venv\Scripts\activate
+pip install -r requirements.txt
+python run.py
+Then open http://localhost:5000 in your browser.
+
+
+
 Model Manager, module centralizes OpenRouter client setup, model fallback, and agent‑specific model selection.
 We create four agents, each with a specific role and backstory, and assign them different models.
 Each task describes what the agent should produce.
