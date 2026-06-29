@@ -2,8 +2,6 @@
 Digital Multiplex Movie Theatre Multi Agent System 
 
 
-Digital Multiplex Movie Theatre - Multi-Agent System
-
 Overview
 
 This project creates a Digital Multiplex where users can watch movies, listen to songs, and tune into radio shows – all generated on‑the‑fly using CrewAI and OpenRouter. The system uses multiple AI agents to:
