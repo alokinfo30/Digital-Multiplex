@@ -34,6 +34,8 @@ Fully responsive UI for both mobile and laptop
 
 Project Structure
 
+
+
 DigitalMultiplex/
 ├── app/
 │   ├── __init__.py
@@ -64,6 +66,15 @@ DigitalMultiplex/
 ├── run.py
 └── README.md
 
+
+Run Migrations
+Initialize database:
+
+bash
+flask db init
+flask db migrate -m "initial"
+flask db upgrade
+Or simply run the app once – db.create_all() will create tables.
 
 Final Step: Run the Application
 
