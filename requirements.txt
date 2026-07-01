@@ -5,7 +5,7 @@ Flask-Login==0.6.3
 Flask-Migrate==4.0.7
 python-dotenv==1.0.1
 crewai>=0.35.9
-crewai-tools==0.4.2
+crewai-tools==0.4.3
 langchain-community==0.2.0
 langchain-openai==0.1.8
 openai==1.30.1
