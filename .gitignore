@@ -1,0 +1,15 @@
+# Environment variables
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Local Data
+data/
+lt_models/
+
+# IDE / OS specific
+.vscode/
+.DS_Store

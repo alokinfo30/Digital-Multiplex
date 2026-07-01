@@ -11,11 +11,13 @@ langchain-openai
 openai
 flask-cors
 requests
-
-# For local translation server
 libretranslate
-
-# Werkzeug is a Flask dependency, pin to avoid breaking changes
 Werkzeug
 gunicorn
 tiktoken
+alembic
+greenlet
+blinker
+instructor
+numpy
+rich
