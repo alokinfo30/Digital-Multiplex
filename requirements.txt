@@ -1,4 +1,4 @@
-Flask==3.0.3
+Flask==2.3.3
 Flask-Limiter==3.6.0
 Flask-SQLAlchemy==3.1.1
 Flask-Login==0.6.3
@@ -16,5 +16,5 @@ requests==2.32.3
 libretranslate==1.5.3
 
 # Werkzeug is a Flask dependency, pin to avoid breaking changes
-Werkzeug==3.0.3
-gunicorn==22.0.0
+Werkzeug==2.3.7
+gunicorn==21.2.0
