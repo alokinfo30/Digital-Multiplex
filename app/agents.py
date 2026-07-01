@@ -67,7 +67,7 @@ def create_translator_agent():
     )
 
 def create_documentary_generator_agent():
-    model = model_manager.get_model_for_agent('documentary')
+    model = model_manager.get_model_for_agent('doc_gen')
     llm = model_manager.get_llm(model, temperature=0.7)
     return Agent(
         role="Documentary Generator",
@@ -79,7 +79,7 @@ def create_documentary_generator_agent():
     )
 
 def create_podcast_generator_agent():
-    model = model_manager.get_model_for_agent('podcast')
+    model = model_manager.get_model_for_agent('podcast_gen')
     llm = model_manager.get_llm(model, temperature=0.8)
     return Agent(
         role="Podcast Generator",

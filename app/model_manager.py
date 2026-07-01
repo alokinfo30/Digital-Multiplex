@@ -29,7 +29,9 @@ class ModelManager:
             'movie': os.getenv('MOVIE_GENERATOR_MODEL', self.primary_model),
             'song': os.getenv('SONG_GENERATOR_MODEL', self.primary_model),
             'radio': os.getenv('RADIO_GENERATOR_MODEL', self.primary_model),
-            'translator': os.getenv('TRANSLATOR_MODEL', self.primary_model)
+            'translator': os.getenv('TRANSLATOR_MODEL', self.primary_model),
+            'doc_gen': os.getenv('DOCUMENTARY_GENERATOR_MODEL', self.primary_model),
+            'podcast_gen': os.getenv('PODCAST_GENERATOR_MODEL', self.primary_model)
         }
         self._available_models_cache = None
         logger.info(f"ModelManager initialized. Primary: {self.primary_model}")
