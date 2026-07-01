@@ -254,6 +254,15 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         except:
             return content
 
+    def _translate_content(self, content: str, language: str) -> str:
+        """Helper to translate content if language is not English."""
+        if language and language != 'en':
+            try:
+                return self._translate_fallback(content, language)
+            except Exception as e:
+                logger.warning(f"Translation fallback failed: {e}")
+        return content
+
     def generate_movie(self, age_group, language, theme=None):
         if not self.crewai_available:
             return {
@@ -282,17 +291,13 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         movie_task = create_movie_task(self.movie_gen, theme, age_group)
         movie_crew = Crew(agents=[self.movie_gen], tasks=[movie_task], verbose=0)
         movie_content = movie_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
-        
-        if language and language != 'en':
-            try:
-                movie_content = self._translate_fallback(movie_content, language)
-            except:
-                pass
-        
+
+        translated_content = self._translate_content(str(movie_content), language)
+
         return {
             "type": "movie",
             "theme": theme,
-            "content": str(movie_content)
+            "content": translated_content
         }
 
     def generate_song(self, age_group, language, mood=None, genre=None):
@@ -312,18 +317,14 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         song_task = create_song_task(self.song_gen, mood, genre, age_group)
         song_crew = Crew(agents=[self.song_gen], tasks=[song_task], verbose=0)
         song_content = song_crew.kickoff(inputs={"mood": mood, "genre": genre, "age_group": age_group})
-        
-        if language and language != 'en':
-            try:
-                song_content = self._translate_fallback(song_content, language)
-            except:
-                pass
-        
+
+        translated_content = self._translate_content(str(song_content), language)
+
         return {
             "type": "song",
             "mood": mood,
             "genre": genre,
-            "content": str(song_content)
+            "content": translated_content
         }
 
     def generate_radio(self, age_group, language, theme=None):
@@ -340,17 +341,13 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         radio_task = create_radio_task(self.radio_gen, theme, age_group)
         radio_crew = Crew(agents=[self.radio_gen], tasks=[radio_task], verbose=0)
         radio_content = radio_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
-        
-        if language and language != 'en':
-            try:
-                radio_content = self._translate_fallback(radio_content, language)
-            except:
-                pass
-        
+
+        translated_content = self._translate_content(str(radio_content), language)
+
         return {
             "type": "radio",
             "theme": theme,
-            "content": str(radio_content)
+            "content": translated_content
         }
 
     def generate_documentary(self, age_group, language, theme=None):
@@ -367,17 +364,13 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         doc_task = create_documentary_task(self.doc_gen, theme, age_group)
         doc_crew = Crew(agents=[self.doc_gen], tasks=[doc_task], verbose=0)
         doc_content = doc_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
-        
-        if language and language != 'en':
-            try:
-                doc_content = self._translate_fallback(doc_content, language)
-            except:
-                pass
-        
+
+        translated_content = self._translate_content(str(doc_content), language)
+
         return {
             "type": "documentary",
             "theme": theme,
-            "content": str(doc_content)
+            "content": translated_content
         }
 
     def generate_podcast(self, age_group, language, theme=None):
@@ -394,17 +387,13 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         podcast_task = create_podcast_task(self.podcast_gen, theme, age_group)
         podcast_crew = Crew(agents=[self.podcast_gen], tasks=[podcast_task], verbose=0)
         podcast_content = podcast_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
-        
-        if language and language != 'en':
-            try:
-                podcast_content = self._translate_fallback(podcast_content, language)
-            except:
-                pass
-        
+
+        translated_content = self._translate_content(str(podcast_content), language)
+
         return {
             "type": "podcast",
             "theme": theme,
-            "content": str(podcast_content)
+            "content": translated_content
         }
 
     def generate_async(self, content_type, age_group, language, extra=None):
