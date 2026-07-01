@@ -96,7 +96,7 @@ class MultiplexCrew:
         if not self.crewai_available or not self.langchain_available:
             return self._fallback_generate(inputs)
         try:
-            crew = Crew(agents=agents, tasks=tasks, verbose=False)
+            crew = Crew(agents=agents, tasks=tasks, verbose=0) # Changed to integer
             return crew.kickoff(inputs=inputs)
         except Exception as e:
             logger.error(f"Crew execution error: {str(e)}")
@@ -265,7 +265,7 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
         if not theme:
             try:
                 curation_task = create_curation_task(self.curator, age_group, language, 'movie')
-                curation_crew = Crew(agents=[self.curator], tasks=[curation_task], verbose=False)
+                curation_crew = Crew(agents=[self.curator], tasks=[curation_task], verbose=0)
                 curation_result = curation_crew.kickoff(inputs={
                     "age_group": age_group,
                     "language": language,
@@ -280,7 +280,7 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
                 theme = "An exciting adventure"
         
         movie_task = create_movie_task(self.movie_gen, theme, age_group)
-        movie_crew = Crew(agents=[self.movie_gen], tasks=[movie_task], verbose=False)
+        movie_crew = Crew(agents=[self.movie_gen], tasks=[movie_task], verbose=0)
         movie_content = movie_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
         
         if language and language != 'en':
@@ -310,7 +310,7 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
             genre = "nursery" if age_group == "baby" else "classic" if age_group == "senior" else "pop"
         
         song_task = create_song_task(self.song_gen, mood, genre, age_group)
-        song_crew = Crew(agents=[self.song_gen], tasks=[song_task], verbose=False)
+        song_crew = Crew(agents=[self.song_gen], tasks=[song_task], verbose=0)
         song_content = song_crew.kickoff(inputs={"mood": mood, "genre": genre, "age_group": age_group})
         
         if language and language != 'en':
@@ -338,7 +338,7 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
             theme = "fun talk show" if age_group == "baby" else "classic hits" if age_group == "senior" else "current topics"
         
         radio_task = create_radio_task(self.radio_gen, theme, age_group)
-        radio_crew = Crew(agents=[self.radio_gen], tasks=[radio_task], verbose=False)
+        radio_crew = Crew(agents=[self.radio_gen], tasks=[radio_task], verbose=0)
         radio_content = radio_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
         
         if language and language != 'en':
@@ -365,7 +365,7 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
             theme = "nature" if age_group == "baby" else "history" if age_group == "senior" else "technology"
         
         doc_task = create_documentary_task(self.doc_gen, theme, age_group)
-        doc_crew = Crew(agents=[self.doc_gen], tasks=[doc_task], verbose=False)
+        doc_crew = Crew(agents=[self.doc_gen], tasks=[doc_task], verbose=0)
         doc_content = doc_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
         
         if language and language != 'en':
@@ -392,7 +392,7 @@ Host: "Thanks for listening to Exploring {topic}! Don't forget to subscribe and 
             theme = "inspiration" if age_group == "young_adult" else "storytelling"
         
         podcast_task = create_podcast_task(self.podcast_gen, theme, age_group)
-        podcast_crew = Crew(agents=[self.podcast_gen], tasks=[podcast_task], verbose=False)
+        podcast_crew = Crew(agents=[self.podcast_gen], tasks=[podcast_task], verbose=0)
         podcast_content = podcast_crew.kickoff(inputs={"theme": theme, "age_group": age_group})
         
         if language and language != 'en':

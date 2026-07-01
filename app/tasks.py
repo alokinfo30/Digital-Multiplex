@@ -4,12 +4,12 @@ from crewai import Task
 def create_curation_task(agent, age_group, language, content_type):
     return Task(
         description=f"""
-        Based on the user's age group: {age_group}, preferred language: {language}, and content type: {content_type},
-        select the best possible content idea (movie, song, or radio show) that would be most enjoyable.
-        Provide a short description of why this content is suitable.
+        Select a suitable content idea for a '{content_type}' based on the user's age group '{age_group}' and preferred language '{language}'.
+        Your final answer must be a JSON object with the keys: 'title', 'genre', 'description', and 'reason'.
+        Example: {{"title": "The Magical Forest", "genre": "Fantasy", "description": "A story about...", "reason": "It is age-appropriate..."}}
         """,
-        expected_output="A JSON with keys: 'title', 'genre', 'description', 'reason'.",
-        agent=agent
+        agent=agent,
+        expected_output="A JSON object with keys: 'title', 'genre', 'description', 'reason'."
     )
 
 def create_movie_task(agent, theme, age_group):
@@ -17,17 +17,17 @@ def create_movie_task(agent, theme, age_group):
         description=f"""
         Generate a movie with the following details:
         - Theme: {theme}
-        - Age Group: {age_group}
+        - Target Age Group: {age_group}
         Include:
         - Title
         - Genre
         - Short synopsis (2-3 paragraphs)
-        - Main characters (brief)
-        - Runtime (approx.)
+        - Main characters (brief description)
+        - Approximate Runtime
         - Moral or message
         """,
-        expected_output="A well‑structured movie synopsis in markdown format.",
-        agent=agent
+        agent=agent,
+        expected_output="A well-structured movie synopsis formatted in markdown."
     )
 
 def create_song_task(agent, mood, genre, age_group):
@@ -35,15 +35,14 @@ def create_song_task(agent, mood, genre, age_group):
         description=f"""
         Write a song with:
         - Mood: {mood}
-        - Genre: {genre}
-        - Age Group: {age_group}
+        - Genre: {genre} for age group: {age_group}
         Provide:
         - Song title
         - Lyrics (verses and chorus)
         - Suggested musical style
         """,
-        expected_output="Song lyrics with title and style notes.",
-        agent=agent
+        agent=agent,
+        expected_output="Complete song lyrics including a title and style notes."
     )
 
 def create_radio_task(agent, theme, age_group):
@@ -57,8 +56,8 @@ def create_radio_task(agent, theme, age_group):
         - Closing remarks
         Keep the tone engaging and appropriate for the age group.
         """,
-        expected_output="A complete radio show script.",
-        agent=agent
+        agent=agent,
+        expected_output="A complete radio show script formatted for easy reading."
     )
 
 def create_translation_task(agent, content, target_language):
@@ -68,8 +67,8 @@ def create_translation_task(agent, content, target_language):
         {content}
         Ensure the translation is natural and culturally appropriate.
         """,
-        expected_output="The translated text in the target language.",
-        agent=agent
+        agent=agent,
+        expected_output=f"The translated text in {target_language}."
     )
 
 def create_documentary_task(agent, theme, age_group):
@@ -84,8 +83,8 @@ def create_documentary_task(agent, theme, age_group):
         - Conclusion
         Make it educational yet entertaining.
         """,
-        expected_output="A documentary script or outline.",
-        agent=agent
+        agent=agent,
+        expected_output="A well-structured documentary script or a detailed outline."
     )
 
 def create_podcast_task(agent, theme, age_group):
@@ -100,6 +99,6 @@ def create_podcast_task(agent, theme, age_group):
         - Closing remarks
         Keep the tone conversational and engaging.
         """,
-        expected_output="A podcast script.",
-        agent=agent
+        agent=agent,
+        expected_output="A complete and engaging podcast script."
     )
