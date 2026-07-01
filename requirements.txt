@@ -4,13 +4,13 @@ Flask-SQLAlchemy
 Flask-Login
 Flask-Migrate
 python-dotenv
-crewai==0.35.9
+crewai>=1.15.1
 crewai-tools
 langchain-community
 langchain-openai>=0.1.0
 openai
 flask-cors>=4.0.1
-requests>=2.32.5
+requests>=2.34.2
 libretranslate
 Werkzeug
 gunicorn
@@ -19,5 +19,5 @@ alembic
 greenlet
 blinker
 instructor>=1.3.0
-numpy>=1.24.0
-rich>=13.0.0
+numpy>=2.5.0
+rich>=14.3.4
