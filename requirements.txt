@@ -18,3 +18,4 @@ libretranslate
 # Werkzeug is a Flask dependency, pin to avoid breaking changes
 Werkzeug
 gunicorn
+tiktoken
