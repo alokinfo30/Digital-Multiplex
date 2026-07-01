@@ -1,12 +1,16 @@
 # app/main.py
 from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
+from app.crew import MultiplexCrew
+from app.models import db, History
+import uuid
 import secrets
 import os
 import logging
 
 logger = logging.getLogger(__name__)
 main_bp = Blueprint('main', __name__)
+crew_instance = MultiplexCrew()
 
 # Store active jobs globally
 active_jobs = {}
@@ -65,6 +69,16 @@ def save_history(user_id, content_type, title, content, language):
 @main_bp.route('/')
 def index():
     return render_template('index.html')
+
+@main_bp.route('/health')
+def health_check():
+    """Health check endpoint for Render."""
+    # Secure the health check endpoint
+    secret_header = request.headers.get('X-Render-Health-Check-Key')
+    expected_secret = os.getenv('RENDER_HEALTH_CHECK_KEY')
+    if not expected_secret or secret_header != expected_secret:
+        return jsonify({"status": "forbidden"}), 403
+    return jsonify({"status": "healthy"}), 200
 
 @main_bp.route('/api/generate', methods=['POST'])
 def generate():
@@ -128,19 +142,7 @@ def generate():
             }
             return jsonify({'job_id': job_id, 'status': 'processing'})
         
-        crew = MultiplexCrew()
-        queue = crew.generate_async(content_type, age_group, language, extra)
-        job_id = secrets.token_hex(8)
-        active_jobs[job_id] = {
-            'queue': queue,
-            'status': 'processing',
-            'result': None,
-            'user_id': user_id,
-            'content_type': content_type,
-            'language': language
-        }
-        
-        return jsonify({'job_id': job_id, 'status': 'processing'})
+      
         
     except Exception as e:
         logger.error(f"Generation error: {str(e)}")
