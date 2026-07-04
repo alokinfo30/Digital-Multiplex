@@ -1,16 +1,16 @@
-flask>=3.1.3
+flask
 Flask-Limiter
 Flask-SQLAlchemy
-flask-login>=0.6.3
+flask-login
 Flask-Migrate
 python-dotenv
-crewai>=1.15.1
+crewai
 crewai-tools
 langchain-community
-langchain-openai>=0.1.0
+langchain-openai
 openai
-flask-cors>=6.0.3
-requests>=2.34.2
+flask-cors
+requests
 libretranslate
 Werkzeug
 gunicorn
@@ -18,7 +18,7 @@ tiktoken
 alembic
 greenlet
 blinker
-instructor>=1.15.4
-numpy>=2.2.0, <2.5.0
-rich>=14.3.4
-packaging>=26.2
+instructor
+numpy
+rich
+packaging
