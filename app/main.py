@@ -1,12 +1,18 @@
-# app/main.py
+import os
+import sys
+import logging
+import secrets
+import uuid
 from flask import Flask, Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
+
+
 from app.crew import MultiplexCrew
 from app.models import db, History
-import uuid
-import secrets
-import os
-import logging
+
+# Ensure local application directory context is sound
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,24 +24,37 @@ crew_instance = None
 # Store active jobs globally
 active_jobs = {}
 
+# 3. Defensive global availability flags
+CREW_AVAILABLE = False
+TMDB_AVAILABLE = False
+TRANSLATE_AVAILABLE = False
+DB_AVAILABLE = False
 
 def get_crew_instance():
-    global crew_instance
+    global crew_instance, CREW_AVAILABLE
     if crew_instance is None:
-        crew_instance = MultiplexCrew()
+        try:
+            from app.crew import MultiplexCrew
+            crew_instance = MultiplexCrew()
+            # Only set to True if initialization succeeds
+            if crew_instance.crewai_available:
+                CREW_AVAILABLE = True
+                logger.info("✅ MultiplexCrew initialized lazily successfully")
+            else:
+                CREW_AVAILABLE = False
+                logger.warning("⚠️ MultiplexCrew initialized, but dependencies (CrewAI/LangChain) are missing.")
+        except Exception as e:
+            logger.error(f"❌ Lazy Crew initialization failed: {str(e)}")
+            CREW_AVAILABLE = False
     return crew_instance
 
-
-
-
-# Try to import optional modules with error handling
 try:
-    from app.crew import MultiplexCrew
-    CREW_AVAILABLE = True
-    logger.info("✅ MultiplexCrew imported successfully")
+    from app.models import db, History, Preference
+    DB_AVAILABLE = True
 except ImportError as e:
-    logger.warning(f"⚠️ Crew not available: {e}")
-    CREW_AVAILABLE = False
+    logger.warning(f"⚠️ Database not available: {e}")
+    DB_AVAILABLE = False
+
 
 try:
     from app.tmdb import discover_movies
@@ -51,13 +70,6 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ Translation not available: {e}")
     TRANSLATE_AVAILABLE = False
-
-try:
-    from app.models import db, History, Preference
-    DB_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"⚠️ Database not available: {e}")
-    DB_AVAILABLE = False
 
 def save_history(user_id, content_type, title, content, language):
     """Save generated content to user history"""
@@ -282,5 +294,3 @@ def test_translation():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
     
-    # 3. ADD THIS AT THE VERY BOTTOM OF THE FILE
-app.register_blueprint(main_bp)
