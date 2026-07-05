@@ -320,13 +320,22 @@ def test_translation():
 
 def create_app():
     """Application factory helper to securely build the Flask environment."""
-    flask_app = Flask(__name__)
+    import os
+    
+    # Dynamically find the root folder path (one level up from app/main.py)
+    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    
+    flask_app = Flask(
+        __name__,
+        static_folder=os.path.join(root_path, 'static'),
+        template_folder=os.path.join(root_path, 'templates')
+    )
 
     # Configure minimum settings required to avoid extensions crashing
     flask_app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", secrets.token_hex(24))
     flask_app.config["USE_TMDB"] = True
     flask_app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL", "postgresql://postgres:Mysalary$50Crore@db.bogkpvjfdlbbyurdwltc.supabase.co:5432/postgres"
+        "DATABASE_URL", "postgresql://postgres:Mysalary$50Crore@db.bogkpvjfdlbbyurdwltc@aws-0-ap-southeast-1.pooler.supabase.co:6543/postgres?sslmode=require"
     )
     flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
