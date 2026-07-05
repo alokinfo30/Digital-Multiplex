@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 main_bp = Blueprint('main', __name__)
 app = Flask(__name__)
+app.register_blueprint(main_bp)
 # Keep crew_instance as None globally, or initialize it lazily when needed
 crew_instance = None 
 
@@ -137,8 +138,8 @@ def generate():
                     })
         
         # Fallback to AI generation
-        if not CREW_AVAILABLE:
-            # Use fallback generation even if CrewAI is not available
+        if CREW_AVAILABLE:
+            # Use CrewAI for generation
             crew = get_crew_instance()
             queue = crew.generate_async(content_type, age_group, language, extra)
             job_id = secrets.token_hex(8)
@@ -152,6 +153,9 @@ def generate():
             }
             return jsonify({'job_id': job_id, 'status': 'processing'})
         
+        # If we reach here, it means neither TMDB nor CrewAI was available to handle the request.
+        logger.error("No generation method available (TMDB or CrewAI).")
+        return jsonify({'error': 'No generation service is available.', 'status': 'error'}), 503
       
         
     except Exception as e:
