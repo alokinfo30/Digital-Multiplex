@@ -15,6 +15,9 @@ app = Flask(__name__)
 app.register_blueprint(main_bp)
 # Keep crew_instance as None globally, or initialize it lazily when needed
 crew_instance = None 
+# Store active jobs globally
+active_jobs = {}
+
 
 def get_crew_instance():
     global crew_instance
@@ -23,8 +26,7 @@ def get_crew_instance():
     return crew_instance
 
 
-# Store active jobs globally
-active_jobs = {}
+
 
 # Try to import optional modules with error handling
 try:
@@ -279,3 +281,6 @@ def test_translation():
         })
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+    
+    # 3. ADD THIS AT THE VERY BOTTOM OF THE FILE
+app.register_blueprint(main_bp)
