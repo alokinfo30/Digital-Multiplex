@@ -266,6 +266,35 @@ def create_app():
     flask_app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', secrets.token_hex(24))
     flask_app.config['USE_TMDB'] = True
     
+    # 2. Safely Initialize Database and LoginManager with the app instance
+    try:
+        if DB_AVAILABLE:
+            # Bind the database instance to this app
+            db.init_app(flask_app)
+            
+            # Create tables automatically if they don't exist yet
+            with flask_app.app_context():
+                db.create_all()
+    except Exception as e:
+        logger.warning(f"⚠️ Could not bind extension/DB to app instance: {e}")
+
+    try:
+        from flask_login import LoginManager
+        login_manager = LoginManager()
+        login_manager.init_app(flask_app)
+        login_manager.login_view = 'auth.login' # adjust this route string if your login route is named differently
+        
+        # User loader callback for Flask-Login
+        @login_manager.user_loader
+        def load_user(user_id):
+            try:
+                from app.models import User # Adjust if your User model lives somewhere else
+                return User.query.get(int(user_id))
+            except Exception:
+                return None
+    except Exception as e:
+        logger.warning(f"⚠️ LoginManager configuration skipped: {e}")
+        
     # Register blueprints onto the instance inside the factory block
     flask_app.register_blueprint(main_bp)
     return flask_app
