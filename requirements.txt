@@ -9,7 +9,7 @@ crewai-tools
 langchain-community
 langchain-openai
 openai
-flask-cors
+flask-cors==4.0.1
 requests
 libretranslate
 Werkzeug
