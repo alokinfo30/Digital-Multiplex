@@ -1,5 +1,5 @@
 # app/main.py
-from flask import Blueprint, render_template, request, jsonify, current_app
+from flask import Flask, Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.crew import MultiplexCrew
 from app.models import db, History
@@ -9,8 +9,18 @@ import os
 import logging
 
 logger = logging.getLogger(__name__)
+
 main_bp = Blueprint('main', __name__)
-crew_instance = MultiplexCrew()
+app = Flask(__name__)
+# Keep crew_instance as None globally, or initialize it lazily when needed
+crew_instance = None 
+
+def get_crew_instance():
+    global crew_instance
+    if crew_instance is None:
+        crew_instance = MultiplexCrew()
+    return crew_instance
+
 
 # Store active jobs globally
 active_jobs = {}
@@ -129,7 +139,7 @@ def generate():
         # Fallback to AI generation
         if not CREW_AVAILABLE:
             # Use fallback generation even if CrewAI is not available
-            crew = MultiplexCrew()
+            crew = get_crew_instance()
             queue = crew.generate_async(content_type, age_group, language, extra)
             job_id = secrets.token_hex(8)
             active_jobs[job_id] = {

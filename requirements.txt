@@ -21,3 +21,4 @@ instructor
 numpy
 rich
 packaging
+pydantic

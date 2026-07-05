@@ -61,17 +61,16 @@ class ModelManager:
         return available
 
     def get_llm(self, model: str, temperature: float = 0.7):
-        """Return a LangChain‑compatible LLM (OpenAI wrapper)."""
-        from langchain_openai import ChatOpenAI
-        return ChatOpenAI(
+        """Return a CrewAI-native LLM configuration."""
+        from crewai import LLM
+        
+        # CrewAI native wrapper natively supports standard OpenAI / OpenRouter configurations
+        return LLM(
             model=model,
             api_key=self.api_key,
             base_url=self.base_url,
             temperature=temperature,
-            default_headers={
-                "HTTP-Referer": self.app_url,
-                "X-Title": self.app_name
-            }
+            timeout=120.0
         )
 
 model_manager = ModelManager()

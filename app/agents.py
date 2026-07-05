@@ -14,7 +14,7 @@ def create_curator_agent():
         goal="Select the most suitable movie, song, or radio show for the user's age group and preferences.",
         backstory="You are an expert curator at a digital multiplex. You understand what content suits babies, young adults, and seniors. You also consider language and past choices.",
         allow_delegation=False,
-        verbose=True,
+        verbose=False,
         llm=llm
     )
 
