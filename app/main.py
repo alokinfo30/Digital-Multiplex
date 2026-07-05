@@ -326,7 +326,7 @@ def create_app():
     flask_app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", secrets.token_hex(24))
     flask_app.config["USE_TMDB"] = True
     flask_app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL", "sqlite:///multiplex_fallback.db"
+        "DATABASE_URL", "postgresql://postgres:Mysalary$50Crore@db.bogkpvjfdlbbyurdwltc.supabase.co:5432/postgres"
     )
     flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -372,7 +372,7 @@ def create_app():
         logger.info("✅ Auth blueprint successfully mounted")
     except Exception as e:
         logger.error(f"❌ Failed mounting auth blueprint module: {e}")
-        
+
     return flask_app
 
 
