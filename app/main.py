@@ -8,6 +8,7 @@ import json
 
 from flask import Flask, Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
+from app import limiter
 
 # Ensure local application directory context is sound
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -205,6 +206,7 @@ def generate():
 
 
 @main_bp.route("/api/result/<job_id>")
+@limiter.exempt
 def get_result(job_id):
     try:
         # Handle the special case where the frontend might poll for a TMDB result
