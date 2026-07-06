@@ -192,6 +192,10 @@ def generate():
 @main_bp.route("/api/result/<job_id>")
 def get_result(job_id):
     try:
+        # Handle the special case where the frontend might poll for a TMDB result
+        if job_id == "tmdb":
+            return jsonify({"status": "error", "message": "TMDB results are returned directly and cannot be polled."}), 404
+
         job_data = None
         if redis_client:
             job_data_json = redis_client.get(f"job:{job_id}")
