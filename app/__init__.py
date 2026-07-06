@@ -22,15 +22,16 @@ def create_app():
     """Application factory pattern for Flask app"""
     load_dotenv()
     
-    app = Flask(__name__, 
-                template_folder='../templates',
-                static_folder='../static')
-    
     # Configuration
     is_production = os.getenv('FLASK_ENV') == 'production'
     
     # Use absolute path for the database to avoid relative path issues.
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    
+    app = Flask(__name__, 
+                template_folder=os.path.join(project_root, 'templates'),
+                static_folder=os.path.join(project_root, 'static'))
+    
     default_db_path = os.path.join(project_root, 'data', 'dev.db')
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
