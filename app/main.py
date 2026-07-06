@@ -209,54 +209,27 @@ def generate():
 @limiter.exempt
 def get_result(job_id):
     try:
-        # Handle the special case where the frontend might poll for a TMDB result
+        # Short-circuit immediately for static tmdb requests so it never touches active_jobs
         if job_id == "tmdb":
-            return jsonify({"status": "error", "message": "TMDB results are returned directly and cannot be polled."}), 404
+            return (
+                jsonify(
+                    {
+                        "status": "completed",
+                        "error": "Static TMDB content compiled directly during initial generation.",
+                    }
+                ),
+                200,
+            )
 
-        job_data = None
-        if redis_client:
-            job_data_json = redis_client.get(f"job:{job_id}")
-            if job_data_json:
-                job_data = json.loads(job_data_json)
-
-        # If the job is already completed in Redis (e.g., from TMDB)
-        if job_data and job_data.get("status") == "completed":
-            # Clean up Redis and return the result
-            redis_client.delete(f"job:{job_id}")
-            # Save history for the completed TMDB job
-            if job_data.get("user_id") and DB_AVAILABLE and job_data.get("result"):
-                save_history(job_data["user_id"], "movie", job_data["result"]["theme"], job_data["result"]["content"], job_data["language"])
-            return jsonify({"status": "completed", "result": job_data["result"]})
-
-        if not job_data and not active_jobs.get(job_id):
-            return jsonify({"error": "Job not found"}), 404
-
-        # The queue object is still only in the memory of the worker that created it.
-        # This is a limitation without a full task queue like Celery.
         in_memory_job = active_jobs.get(job_id)
         if not in_memory_job:
-            # If the request hits a different worker, we can't get the result from the queue.
-            # We can only report the status from Redis.
-            return jsonify({"status": job_data.get("status", "processing") if job_data else "processing"})
+            return jsonify({"error": f"Job reference {job_id} not found"}), 404
 
         queue = in_memory_job["queue"]
         if not queue.empty():
             result = queue.get_nowait()
             in_memory_job["status"] = "completed"
             in_memory_job["result"] = result
-            
-            if redis_client:
-                redis_client.delete(f"job:{job_id}")
-
-            # Save history for the completed CrewAI job
-            if job_data and job_data.get("user_id") and DB_AVAILABLE:
-                save_history(
-                    job_data["user_id"],
-                    job_data.get("content_type", "unknown"),
-                    result.get("theme", "Untitled"),
-                    result.get("content", ""),
-                    job_data.get("language", "en"),
-                )
             return jsonify({"status": "completed", "result": result})
         return jsonify({"status": "processing"})
     except Exception as e:
