@@ -26,13 +26,17 @@ def create_app():
     is_production = os.getenv('FLASK_ENV') == 'production'
     
     # Use absolute path for the database to avoid relative path issues.
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    # This ensures paths are correct in both local and production (e.g., Render) environments.
+    instance_path = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(instance_path, os.pardir))
     
-    app = Flask(__name__, 
-                template_folder=os.path.join(project_root, 'templates'),
-                static_folder=os.path.join(project_root, 'static'))
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(instance_path, 'templates'),
+        static_folder=os.path.join(instance_path, 'static'),
+    )
     
-    default_db_path = os.path.join(project_root, 'data', 'dev.db')
+    default_db_path = os.path.join(project_root, 'data', 'dev.db') # For local dev
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
