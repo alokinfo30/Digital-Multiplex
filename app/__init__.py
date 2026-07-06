@@ -28,8 +28,12 @@ def create_app():
     
     # Configuration
     is_production = os.getenv('FLASK_ENV') == 'production'
+    
+    # Use absolute path for the database to avoid relative path issues.
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    default_db_path = os.path.join(project_root, 'data', 'dev.db')
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///../data/dev.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['USE_TMDB'] = os.getenv('USE_TMDB', 'True').lower() == 'true'
     app.config['DEBUG'] = os.getenv('DEBUG', 'False').lower() == 'true' and not is_production

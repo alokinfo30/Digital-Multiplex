@@ -14,12 +14,15 @@ class LibreTranslateClient:
         self.base_url = os.getenv('LIBRETRANSLATE_URL', 'http://localhost:5001/translate')
         self.languages_url = os.getenv('LIBRETRANSLATE_LANGUAGES_URL', 'http://localhost:5001/languages')
         self.available_languages = []
-        self._load_languages()
+        self._languages_loaded = False
     
     def _load_languages(self):
         """Load available languages from LibreTranslate"""
+        if self._languages_loaded:
+            return
         try:
             response = requests.get(self.languages_url, timeout=5)
+            response.raise_for_status() # Raise an exception for bad status codes
             if response.status_code == 200:
                 self.available_languages = [lang['code'] for lang in response.json()]
                 logger.info(f"Loaded {len(self.available_languages)} languages from LibreTranslate")
@@ -29,6 +32,7 @@ class LibreTranslateClient:
             logger.warning(f"Error loading languages: {str(e)}")
             # Fallback languages
             self.available_languages = ['en', 'hi', 'es', 'fr', 'de', 'zh', 'ja', 'ko', 'pt', 'ru', 'it']
+        self._languages_loaded = True
     
     def translate(self, text: str, target_lang: str, source_lang: str = 'en') -> str:
         """
@@ -45,6 +49,7 @@ class LibreTranslateClient:
         if not text or not target_lang or target_lang == source_lang:
             return text
         
+        self._load_languages() # Lazy load languages on first use
         try:
             # Check if language is supported
             if target_lang not in self.available_languages:
@@ -159,8 +164,10 @@ def detect_language(text: str) -> Optional[str]:
 
 def get_supported_languages() -> list:
     """Get list of supported languages"""
+    libre_client._load_languages() # Ensure languages are loaded before returning
     return libre_client.available_languages
 
 def is_language_supported(lang_code: str) -> bool:
     """Check if a language is supported"""
+    libre_client._load_languages() # Ensure languages are loaded before checking
     return lang_code in libre_client.available_languages
