@@ -155,27 +155,32 @@ def generate():
                         "from_tmdb": True,
                     }
                     if user_id and DB_AVAILABLE:
-                        save_history(user_id, "movie", title, overview, language)
+                        # History will be saved when the result is fetched from the polling endpoint
+                        pass
 
                     # Instead of returning directly, create a completed job in Redis
                     # so the frontend can poll for it consistently.
                     if redis_client:
                         job_id = secrets.token_hex(8)
                         job_data = {
-                            "status": "completed",
-                            "result": result,
-                            "user_id": user_id,
-                            "content_type": "movie",
-                            "language": language,
+                            "status": "completed", # Mark as completed immediately
+                            "result": result, # Store the full result
+                            "user_id": user_id, # Keep user context
+                            "content_type": "movie", # Keep content type
+                            "language": language, # Keep language context
                         }
                         redis_client.set(f"job:{job_id}", json.dumps(job_data), ex=300) # Expire in 5 mins
-                        return jsonify({"job_id": job_id, "status": "processing"})
+                        # Tell the frontend to start polling for this job_id
+                        return jsonify({"job_id": job_id, "status": "processing"}) 
                     else:
                         # Fallback for local dev without Redis: return directly
                         return jsonify({"job_id": "tmdb", "status": "completed", "result": result})
 
         # Safe execution using our lazy load handler
         crew = get_crew_instance()
+        if not crew:
+            return jsonify({"error": "Content generation service is currently unavailable.", "status": "error"}), 503
+
         queue = crew.generate_async(content_type, age_group, language, extra)
         
         job_id = secrets.token_hex(8)
@@ -217,7 +222,7 @@ def get_result(job_id):
             # Clean up Redis and return the result
             redis_client.delete(f"job:{job_id}")
             # Save history for the completed TMDB job
-            if job_data.get("user_id") and DB_AVAILABLE:
+            if job_data.get("user_id") and DB_AVAILABLE and job_data.get("result"):
                 save_history(job_data["user_id"], "movie", job_data["result"]["theme"], job_data["result"]["content"], job_data["language"])
             return jsonify({"status": "completed", "result": job_data["result"]})
 
