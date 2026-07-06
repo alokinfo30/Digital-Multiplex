@@ -202,54 +202,42 @@ def get_result(job_id):
 
 @main_bp.route("/api/languages")
 def get_languages():
+    # This dictionary maps language codes to their full names.
+    # While not a secret, centralizing it improves maintainability.
+    lang_names = {
+        "en": "English", "hi": "Hindi", "es": "Spanish", "fr": "French",
+        "de": "German", "zh": "Chinese", "ja": "Japanese", "ko": "Korean",
+        "pt": "Portuguese", "ru": "Russian", "it": "Italian", "ar": "Arabic",
+        "bn": "Bengali", "te": "Telugu", "ta": "Tamil", "ur": "Urdu",
+        "pa": "Punjabi", "gu": "Gujarati",
+    }
+    # Supported languages are controlled by an environment variable for flexibility.
+    supported_lang_codes_str = os.getenv("SUPPORTED_LANGUAGES", "en,hi,es,fr,de,zh,ja,ko,pt,ru,it")
+    supported_lang_codes = [code.strip() for code in supported_lang_codes_str.split(",") if code.strip()]
+
     try:
         if TRANSLATE_AVAILABLE:
             libre_langs = get_supported_languages()
-            lang_names = {
-                "en": "English",
-                "hi": "Hindi",
-                "es": "Spanish",
-                "fr": "French",
-                "de": "German",
-                "zh": "Chinese",
-                "ja": "Japanese",
-                "ko": "Korean",
-                "pt": "Portuguese",
-                "ru": "Russian",
-                "it": "Italian",
-                "ar": "Arabic",
-                "bn": "Bengali",
-                "te": "Telugu",
-                "ta": "Tamil",
-                "ur": "Urdu",
-                "pa": "Punjabi",
-                "gu": "Gujarati",
-            }
             if libre_langs and len(libre_langs) > 1:
+                # Filter the languages from LibreTranslate to only those we want to display.
                 return jsonify(
                     [
                         {"code": lang, "name": lang_names.get(lang, lang.upper())}
                         for lang in libre_langs
-                        if lang in lang_names
+                        if lang in supported_lang_codes
                     ]
                 )
     except Exception as e:
         logger.warning(f"Error getting languages: {str(e)}")
 
-    default_langs = os.getenv("SUPPORTED_LANGUAGES", "en,hi,es,fr,de,zh").split(",")
-    lang_names = {
-        "en": "English",
-        "hi": "Hindi",
-        "es": "Spanish",
-        "fr": "French",
-        "de": "German",
-        "zh": "Chinese",
-    }
+    # Fallback: Return the list of supported languages based on the environment variable.
     return jsonify(
         [
-            {"code": l.strip(), "name": lang_names.get(l.strip(), l.strip())}
-            for l in default_langs
-            if l.strip()
+            {
+                "code": code,
+                "name": lang_names.get(code, code.upper())
+            }
+            for code in supported_lang_codes
         ]
     )
 
@@ -323,20 +311,30 @@ def create_app():
     import os
     
     # Dynamically find the root folder path (one level up from app/main.py)
-    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    
+    current_dir = os.path.dirname(os.path.abspath(__file__)) # app/
+    root_path = os.path.abspath(os.path.join(current_dir, '..')) # project root/
+
+    # Define explicit fallbacks based on where your templates actually live
+    template_dir = os.path.join(root_path, 'templates')
+    if not os.path.exists(os.path.join(template_dir, 'index.html')):
+        # Fallback: if templates are nested inside app/ (app/templates/index.html)
+        template_dir = os.path.join(current_dir, 'templates')
+
+    static_dir = os.path.join(root_path, 'static')
+    if not os.path.exists(static_dir):
+        static_dir = os.path.join(current_dir, 'static')
+
     flask_app = Flask(
         __name__,
-        static_folder=os.path.join(root_path, 'static'),
-        template_folder=os.path.join(root_path, 'templates')
+       static_folder=static_dir,
+        template_folder=template_dir
     )
 
     # Configure minimum settings required to avoid extensions crashing
     flask_app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", secrets.token_hex(24))
-    flask_app.config["USE_TMDB"] = True
-    flask_app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL", "postgresql://postgres:Mysalary$50Crore@db.bogkpvjfdlbbyurdwltc@aws-0-ap-southeast-1.pooler.supabase.co:6543/postgres?sslmode=require"
-    )
+    flask_app.config['USE_TMDB'] = os.getenv('USE_TMDB', 'True').lower() == 'true'
+    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    flask_app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///../data/dev.db")
     flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # 2. Safely Initialize Database and LoginManager with the app instance

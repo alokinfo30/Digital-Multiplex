@@ -29,7 +29,7 @@ def create_app():
     # Configuration
     is_production = os.getenv('FLASK_ENV') == 'production'
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:Mysalary$50Crore@db.bogkpvjfdlbbyurdwltc@aws-0-ap-southeast-1.pooler.supabase.co:6543/postgres?sslmode=require')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///../data/dev.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['USE_TMDB'] = os.getenv('USE_TMDB', 'True').lower() == 'true'
     app.config['DEBUG'] = os.getenv('DEBUG', 'False').lower() == 'true' and not is_production
