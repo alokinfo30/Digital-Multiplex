@@ -4,6 +4,7 @@ import sys
 import logging
 import secrets
 import uuid
+import json
 
 from flask import Flask, Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
@@ -16,8 +17,14 @@ logger = logging.getLogger(__name__)
 # 1. ALWAYS Initialize your blueprint variable first
 main_bp = Blueprint("main", __name__)
 
-# 2. Setup global placeholders
-active_jobs = {}
+# 2. Setup Redis connection for job management
+try:
+    import redis
+    redis_url = os.getenv('REDIS_URL')
+    redis_client = redis.from_url(redis_url) if redis_url else None
+except ImportError:
+    redis_client = None
+
 crew_instance = None
 
 # Defensive global availability flags
@@ -156,8 +163,9 @@ def generate():
         # Safe execution using our lazy load handler
         crew = get_crew_instance()
         queue = crew.generate_async(content_type, age_group, language, extra)
+        
         job_id = secrets.token_hex(8)
-        active_jobs[job_id] = {
+        job_data = {
             "queue": queue,
             "status": "processing",
             "result": None,
@@ -165,7 +173,16 @@ def generate():
             "content_type": content_type,
             "language": language,
         }
-        return jsonify({"job_id": job_id, "status": "processing"})
+
+        if redis_client:
+            # Store job metadata in Redis, excluding the non-serializable queue object
+            redis_job_data = {k: v for k, v in job_data.items() if k != 'queue'}
+            redis_client.set(f"job:{job_id}", json.dumps(redis_job_data), ex=3600) # Expire in 1 hour
+            # A more robust system would use a proper task queue library like Celery
+        
+        # For now, we still need to keep the queue object in memory per-worker
+        job_data['redis_client'] = redis_client
+        active_jobs[job_id] = job_data
 
     except Exception as e:
         logger.error(f"Generation error: {str(e)}")
@@ -175,24 +192,35 @@ def generate():
 @main_bp.route("/api/result/<job_id>")
 def get_result(job_id):
     try:
-        job = active_jobs.get(job_id)
+        job_data = None
+        if redis_client:
+            job_data_json = redis_client.get(f"job:{job_id}")
+            if job_data_json:
+                job_data = json.loads(job_data_json)
+
+        # Fallback to in-memory if Redis fails or job not found there
+        job = active_jobs.get(job_id) if not job_data else job_data
+
         if not job:
             return jsonify({"error": "Job not found"}), 404
 
-        queue = job["queue"]
+        # The queue object is still only in the memory of the worker that created it.
+        # This is a limitation without a full task queue like Celery.
+        in_memory_job = active_jobs.get(job_id)
+        if not in_memory_job:
+            # If the request hits a different worker, we can't get the result from the queue.
+            # We can only report the status from Redis.
+            return jsonify({"status": job.get("status", "processing")})
+
+        queue = in_memory_job["queue"]
         if not queue.empty():
             result = queue.get_nowait()
-            job["result"] = result
-            job["status"] = "completed"
+            in_memory_job["status"] = "completed"
+            in_memory_job["result"] = result
+            
+            if redis_client:
+                redis_client.delete(f"job:{job_id}")
 
-            if job.get("user_id") and DB_AVAILABLE and result.get("type"):
-                save_history(
-                    job["user_id"],
-                    result.get("type"),
-                    result.get("theme", ""),
-                    result.get("content", ""),
-                    job.get("language", "en"),
-                )
             return jsonify({"status": "completed", "result": result})
         return jsonify({"status": "processing"})
     except Exception as e:

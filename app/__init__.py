@@ -13,10 +13,7 @@ import logging
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"]
-)
+limiter = Limiter(key_func=get_remote_address)
 
 def create_app():
     """Application factory pattern for Flask app"""
@@ -43,6 +40,12 @@ def create_app():
     app.config['USE_TMDB'] = os.getenv('USE_TMDB', 'True').lower() == 'true'
     app.config['DEBUG'] = os.getenv('DEBUG', 'False').lower() == 'true' and not is_production
     app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+
+    # Configure Flask-Limiter storage
+    redis_url = os.getenv('REDIS_URL')
+    app.config['RATELIMIT_STORAGE_URI'] = redis_url if redis_url else "memory://"
+    app.config['RATELIMIT_DEFAULT'] = "200 per day;50 per hour"
+
     
     # Initialize extensions with app
     db.init_app(app)
