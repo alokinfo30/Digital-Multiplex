@@ -24,6 +24,7 @@ try:
     redis_client = redis.from_url(redis_url) if redis_url else None
 except ImportError:
     redis_client = None
+active_jobs = {}
 
 crew_instance = None
 
@@ -156,33 +157,42 @@ def generate():
                     if user_id and DB_AVAILABLE:
                         save_history(user_id, "movie", title, overview, language)
 
-                    return jsonify(
-                        {"job_id": "tmdb", "status": "completed", "result": result}
-                    )
+                    # Instead of returning directly, create a completed job in Redis
+                    # so the frontend can poll for it consistently.
+                    if redis_client:
+                        job_id = secrets.token_hex(8)
+                        job_data = {
+                            "status": "completed",
+                            "result": result,
+                            "user_id": user_id,
+                            "content_type": "movie",
+                            "language": language,
+                        }
+                        redis_client.set(f"job:{job_id}", json.dumps(job_data), ex=300) # Expire in 5 mins
+                        return jsonify({"job_id": job_id, "status": "processing"})
+                    else:
+                        # Fallback for local dev without Redis: return directly
+                        return jsonify({"job_id": "tmdb", "status": "completed", "result": result})
 
         # Safe execution using our lazy load handler
         crew = get_crew_instance()
         queue = crew.generate_async(content_type, age_group, language, extra)
         
         job_id = secrets.token_hex(8)
-        job_data = {
-            "queue": queue,
+        # For now, we still need to keep the queue object in memory per-worker
+        active_jobs[job_id] = { "queue": queue }
+
+        if redis_client:
+            # Store job metadata in Redis
+            redis_job_data = {
             "status": "processing",
-            "result": None,
             "user_id": user_id,
             "content_type": content_type,
             "language": language,
-        }
-
-        if redis_client:
-            # Store job metadata in Redis, excluding the non-serializable queue object
-            redis_job_data = {k: v for k, v in job_data.items() if k != 'queue'}
+            }
             redis_client.set(f"job:{job_id}", json.dumps(redis_job_data), ex=3600) # Expire in 1 hour
-            # A more robust system would use a proper task queue library like Celery
-        
-        # For now, we still need to keep the queue object in memory per-worker
-        job_data['redis_client'] = redis_client
-        active_jobs[job_id] = job_data
+
+        return jsonify({"job_id": job_id, "status": "processing"})
 
     except Exception as e:
         logger.error(f"Generation error: {str(e)}")
@@ -202,10 +212,16 @@ def get_result(job_id):
             if job_data_json:
                 job_data = json.loads(job_data_json)
 
-        # Fallback to in-memory if Redis fails or job not found there
-        job = active_jobs.get(job_id) if not job_data else job_data
+        # If the job is already completed in Redis (e.g., from TMDB)
+        if job_data and job_data.get("status") == "completed":
+            # Clean up Redis and return the result
+            redis_client.delete(f"job:{job_id}")
+            # Save history for the completed TMDB job
+            if job_data.get("user_id") and DB_AVAILABLE:
+                save_history(job_data["user_id"], "movie", job_data["result"]["theme"], job_data["result"]["content"], job_data["language"])
+            return jsonify({"status": "completed", "result": job_data["result"]})
 
-        if not job:
+        if not job_data and not active_jobs.get(job_id):
             return jsonify({"error": "Job not found"}), 404
 
         # The queue object is still only in the memory of the worker that created it.
@@ -214,7 +230,7 @@ def get_result(job_id):
         if not in_memory_job:
             # If the request hits a different worker, we can't get the result from the queue.
             # We can only report the status from Redis.
-            return jsonify({"status": job.get("status", "processing")})
+            return jsonify({"status": job_data.get("status", "processing") if job_data else "processing"})
 
         queue = in_memory_job["queue"]
         if not queue.empty():
@@ -225,6 +241,15 @@ def get_result(job_id):
             if redis_client:
                 redis_client.delete(f"job:{job_id}")
 
+            # Save history for the completed CrewAI job
+            if job_data and job_data.get("user_id") and DB_AVAILABLE:
+                save_history(
+                    job_data["user_id"],
+                    job_data.get("content_type", "unknown"),
+                    result.get("theme", "Untitled"),
+                    result.get("content", ""),
+                    job_data.get("language", "en"),
+                )
             return jsonify({"status": "completed", "result": result})
         return jsonify({"status": "processing"})
     except Exception as e:

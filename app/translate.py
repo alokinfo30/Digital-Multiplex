@@ -11,8 +11,11 @@ class LibreTranslateClient:
     """Client for LibreTranslate API"""
     
     def __init__(self):
-        self.base_url = os.getenv('LIBRETRANSLATE_URL', 'http://localhost:5001/translate')
-        self.languages_url = os.getenv('LIBRETRANSLATE_LANGUAGES_URL', 'http://localhost:5001/languages')
+        # The service URL from Render/Docker will be the base (e.g., http://libretranslate:5001)
+        service_url = os.getenv('LIBRETRANSLATE_URL', 'http://localhost:5001')
+        self.translate_url = f"{service_url.rstrip('/')}/translate"
+        self.languages_url = f"{service_url.rstrip('/')}/languages"
+        self.detect_url = f"{service_url.rstrip('/')}/detect"
         self.available_languages = []
         self._languages_loaded = False
     
@@ -66,7 +69,7 @@ class LibreTranslateClient:
             
             # Send translation request
             response = requests.post(
-                self.base_url,
+                self.translate_url,
                 json=payload,
                 timeout=30,
                 headers={'Content-Type': 'application/json'}
@@ -104,7 +107,7 @@ class LibreTranslateClient:
             }
             
             response = requests.post(
-                self.base_url,
+                self.translate_url,
                 json=payload,
                 timeout=60
             )
@@ -123,7 +126,7 @@ class LibreTranslateClient:
         """Detect the language of the text"""
         try:
             response = requests.post(
-                os.getenv('LIBRETRANSLATE_DETECT_URL', 'http://localhost:5001/detect'),
+                self.detect_url,
                 json={'q': text},
                 timeout=10
             )
