@@ -100,6 +100,20 @@
 
 ---
 
+### 🔌 8. Universal Browser 4DX Stream Injector & Chrome Extension (Manifest V3)
+* **Automatic Streaming Video Platform Hook:**
+  - Whenever a user opens **ANY video streaming platform** (*YouTube, Netflix, Prime Video, Disney+ Hotstar, Twitch, Vimeo, Crunchyroll, JioCinema, Zee5, Dailymotion*), the browser extension content script automatically detects the active video.
+  - Injects a glowing floating **"⚡ WATCH IN 4DX MOVIE THEATER"** badge directly over/near the video player.
+* **Instant 1-Click Warp to 4DX:**
+  - Clicking the 4DX button grabs the active video stream URL, movie title, and timestamp.
+  - Automatically redirects to Digital Multiplex (`?movie=...&title=...&autoplay=1`), which immediately starts playing that exact video on the **IMAX 4DX Curved Screen** with full sub-bass haptics, air blasts, and ambilight!
+* **Universal 1-Click Bookmarklet:**
+  - Drag-and-drop or click the **"⚡ Stream in 4DX"** bookmarklet on ANY browser (Chrome, Edge, Safari, Firefox, Mobile) to instantly stream any video in 4DX without installing extensions.
+* **Official Chrome Extension (Manifest V3):**
+  - Included in `/extension` folder with background service workers, context menu (`⚡ Stream Current Video in 4DX`), and popup manager.
+
+---
+
 ## 🛠️ Architecture & Tech Stack
 
 ```mermaid

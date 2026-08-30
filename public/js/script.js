@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hub Containers
     const virtualTheaterHub = document.getElementById('virtualTheaterHub');
     const converterHub = document.getElementById('converterHub');
+    const extensionHub = document.getElementById('extensionHub');
     const globalCatalogHub = document.getElementById('globalCatalogHub');
     const recommendationsHub = document.getElementById('recommendationsHub');
     const contentDisplay = document.getElementById('contentDisplay');
@@ -28,12 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const geoLangBadge = document.getElementById('geoLangBadge');
     const catalogLocationBadge = document.getElementById('catalogLocationBadge');
 
-    // 4DX Converter Elements
+    // 4DX Converter & Extension Elements
     const converterMovieInput = document.getElementById('converterMovieInput');
     const converterProfileSelect = document.getElementById('converterProfileSelect');
     const executeConvertBtn = document.getElementById('executeConvertBtn');
     const converterActiveStatusText = document.getElementById('converterActiveStatusText');
     const testConverted4dxBtn = document.getElementById('testConverted4dxBtn');
+    const copyBookmarkletCodeBtn = document.getElementById('copyBookmarkletCodeBtn');
+    const testExtensionRedirectBtn = document.getElementById('testExtensionRedirectBtn');
 
     // Global Movies & Recommendations
     const globalMoviesGrid = document.getElementById('globalMoviesGrid');
@@ -1500,6 +1503,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide all hubs
         if (virtualTheaterHub) virtualTheaterHub.classList.add('hidden');
         if (converterHub) converterHub.classList.add('hidden');
+        if (extensionHub) extensionHub.classList.add('hidden');
         if (globalCatalogHub) globalCatalogHub.classList.add('hidden');
         if (recommendationsHub) recommendationsHub.classList.add('hidden');
         if (contentDisplay) contentDisplay.classList.add('hidden');
@@ -1510,12 +1514,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tabType === 'virtual_theater') {
             if (virtualTheaterHub) virtualTheaterHub.classList.remove('hidden');
             if (converterHub) converterHub.classList.remove('hidden');
+            if (extensionHub) extensionHub.classList.remove('hidden');
             if (globalCatalogHub) globalCatalogHub.classList.remove('hidden');
             if (recommendationsHub) recommendationsHub.classList.remove('hidden');
         } else if (tabType === 'converter') {
             if (converterHub) {
                 converterHub.classList.remove('hidden');
                 converterHub.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else if (tabType === 'extension_hub') {
+            if (extensionHub) {
+                extensionHub.classList.remove('hidden');
+                extensionHub.scrollIntoView({ behavior: 'smooth' });
             }
         } else if (tabType === 'global_catalog') {
             if (globalCatalogHub) {
@@ -1978,4 +1988,50 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     loadTriviaQuestion(0);
+
+    // ---------------------------------------------------------
+    // 18. BROWSER EXTENSION & BOOKMARKLET INTERACTIVE HANDLERS
+    // ---------------------------------------------------------
+    if (copyBookmarkletCodeBtn) {
+        copyBookmarkletCodeBtn.addEventListener('click', function() {
+            const code = `javascript:(function(){var url=window.location.href;var t=document.title;window.open('https://alokinfo30.github.io/Digital-Multiplex/?movie='+encodeURIComponent(url)+'&title='+encodeURIComponent(t)+'&autoplay=1','_blank');})();`;
+            navigator.clipboard.writeText(code);
+            copyBookmarkletCodeBtn.textContent = '✅ Copied JS Code!';
+            setTimeout(() => { copyBookmarkletCodeBtn.textContent = '📋 Copy JS Code'; }, 2000);
+        });
+    }
+
+    if (testExtensionRedirectBtn) {
+        testExtensionRedirectBtn.addEventListener('click', function() {
+            playMovieOrVideo('https://www.youtube.com/watch?v=Way9Dexny3w', 'Dune: Part Two (4DX Extension Launcher)', 'turbo');
+        });
+    }
+
+    document.querySelectorAll('.quick-stream-test-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const title = this.dataset.title;
+            playMovieOrVideo(url, title, 'turbo');
+        });
+    });
+
+    // ---------------------------------------------------------
+    // 19. AUTOMATIC URL STREAM PARSER (FROM BROWSER EXTENSION / 4DX BUTTON / BOOKMARKLET)
+    // ---------------------------------------------------------
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const movieParam = urlParams.get('movie') || urlParams.get('url') || urlParams.get('v') || urlParams.get('video');
+        const titleParam = urlParams.get('title');
+        const profileParam = urlParams.get('profile') || 'turbo';
+
+        if (movieParam) {
+            console.log('⚡ Digital Multiplex 4DX Stream Auto-Detected from Browser Extension:', movieParam);
+            setTimeout(() => {
+                playMovieOrVideo(movieParam, titleParam || 'Streaming Video in 4DX', profileParam);
+            }, 400);
+        }
+    } catch (e) {
+        console.log('URL stream parsing error:', e);
+    }
 });
+

@@ -68,6 +68,15 @@ class TestVirtualCinema(unittest.TestCase):
         self.assertIn("movieDubLanguage", html)
         self.assertIn("geoLangBadge", html)
 
+    def test_browser_extension_and_stream_injector_present(self):
+        response = self.client.get("/")
+        html = response.get_data(as_text=True)
+
+        self.assertIn("extensionHub", html)
+        self.assertIn("dragBookmarkletBtn", html)
+        self.assertIn("copyBookmarkletCodeBtn", html)
+        self.assertIn("testExtensionRedirectBtn", html)
+
 
 if __name__ == "__main__":
     unittest.main()

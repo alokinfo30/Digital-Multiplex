@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Multiplex 4DX Streamer</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <div class="popup-header">
+            <div class="logo-row">
+                <span class="logo-icon">🎬</span>
+                <span class="logo-title">DIGITAL MULTIPLEX</span>
+            </div>
+            <span class="badge-4dx">4DX PRO</span>
+        </div>
+
+        <p class="popup-desc">Instantly convert and stream your active browser video tab into a full IMAX 4DX Cinema experience with synchronized haptics & Dolby Atmos!</p>
+
+        <div class="current-tab-card">
+            <div class="card-label">ACTIVE STREAM DETECTED:</div>
+            <div id="detectedTitle" class="tab-title">Fetching video stream...</div>
+            <div id="detectedUrl" class="tab-url">Checking active tab...</div>
+        </div>
+
+        <button type="button" id="launch4dxBtn" class="btn-launch-4dx">
+            ⚡ LAUNCH IN 4DX CINEMA NOW
+        </button>
+
+        <div class="supported-platforms">
+            <span>Supported:</span>
+            <div class="platform-tags">
+                <span class="tag">YouTube</span>
+                <span class="tag">Netflix</span>
+                <span class="tag">Prime</span>
+                <span class="tag">Hotstar</span>
+                <span class="tag">Twitch</span>
+                <span class="tag">Vimeo</span>
+                <span class="tag">Any MP4</span>
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

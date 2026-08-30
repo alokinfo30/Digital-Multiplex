@@ -153,6 +153,7 @@
         <nav class="studio-nav-tabs" aria-label="Entertainment studios and hubs">
             <button type="button" class="studio-tab-btn active" data-type="virtual_theater">🚀 4DX Cinema & Watch Party</button>
             <button type="button" class="studio-tab-btn" data-type="converter">⚡ Universal 4DX Converter</button>
+            <button type="button" class="studio-tab-btn" data-type="extension_hub">🔌 Browser 4DX Injector</button>
             <button type="button" class="studio-tab-btn" data-type="global_catalog">🌍 Worldwide Movies</button>
             <button type="button" class="studio-tab-btn" data-type="recommendations">✨ For You (AI Recs)</button>
             <button type="button" class="studio-tab-btn" data-type="movie">🎥 Cinema Studio</button>
@@ -415,6 +416,72 @@
                     </div>
                     <div style="display:flex; gap:8px;">
                         <button type="button" id="testConverted4dxBtn" class="btn-secondary-action" style="padding:6px 12px; font-size:0.8rem;">🧪 Test 4DX Pulse</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 HUB 2B: BROWSER 4DX STREAM INJECTOR & CHROME EXTENSION SUITE -->
+            <section id="extensionHub" class="converter-4dx-section hidden" style="border-color: rgba(56, 189, 248, 0.4); background: radial-gradient(circle at top, rgba(56, 189, 248, 0.12) 0%, rgba(12, 18, 34, 0.95) 100%);">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <span style="font-size:0.78rem; font-weight:900; color:#38bdf8; text-transform:uppercase; letter-spacing:1px;">🔌 Automatic Browser Stream Hook</span>
+                        <h2 style="font-size:1.4rem; color:#fff; margin-top:2px;">Browser 4DX Movie Stream Injector</h2>
+                        <p style="font-size:0.86rem; color:#cbd5e1;">Stream ANY video from YouTube, Netflix, Prime Video, Disney+ Hotstar, Twitch & Vimeo directly into your 4DX IMAX Cinema!</p>
+                    </div>
+                    <div class="tele-pill" style="border-color:#38bdf8;">Integration: <b style="color:#38bdf8;">Manifest V3 & Universal Bookmarklet</b></div>
+                </div>
+
+                <!-- 2-Column Grid: 1-Click Bookmarklet & Chrome Extension Setup -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-top:16px;">
+                    <!-- Column 1: Universal 1-Click Browser Bookmarklet -->
+                    <div style="background:rgba(0,0,0,0.5); border:1px solid rgba(56,189,248,0.3); border-radius:var(--radius-lg); padding:20px; display:flex; flex-direction:column; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:1.4rem;">⚡</span>
+                            <div>
+                                <h3 style="color:#fff; font-size:1.1rem; font-weight:800;">Method 1: Universal 1-Click Bookmarklet</h3>
+                                <p style="font-size:0.78rem; color:#94a3b8;">Works instantly on ANY browser (Chrome, Edge, Safari, Firefox, Mobile) without installing anything!</p>
+                            </div>
+                        </div>
+                        <p style="font-size:0.84rem; color:#cbd5e1; line-height:1.5;">
+                            Drag this button to your Bookmarks Bar, or click it while watching any streaming video on YouTube, Netflix, or Prime to instantly warp to 4DX:
+                        </p>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <a id="dragBookmarkletBtn" class="btn-convert-action" href="javascript:(function(){var url=window.location.href;var t=document.title;window.open('https://alokinfo30.github.io/Digital-Multiplex/?movie='+encodeURIComponent(url)+'&title='+encodeURIComponent(t)+'&autoplay=1','_blank');})();" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; background:linear-gradient(135deg, #0284c7, #38bdf8); color:#fff; font-weight:800; padding:10px 18px; border-radius:50px; cursor:grab;" title="Drag me to your bookmarks bar!">
+                                ⚡ Drag to Bookmarks: "Stream in 4DX"
+                            </a>
+                            <button type="button" id="copyBookmarkletCodeBtn" class="btn-secondary-action" style="padding:10px 16px;">📋 Copy JS Code</button>
+                        </div>
+                        <div style="font-size:0.75rem; color:#64748b;">
+                            Tip: While on YouTube/Netflix, just click the bookmarklet and your video starts playing right here on the 4DX screen!
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Official Chrome Extension -->
+                    <div style="background:rgba(0,0,0,0.5); border:1px solid rgba(168,85,247,0.3); border-radius:var(--radius-lg); padding:20px; display:flex; flex-direction:column; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:1.4rem;">📦</span>
+                            <div>
+                                <h3 style="color:#fff; font-size:1.1rem; font-weight:800;">Method 2: Official Chrome Extension</h3>
+                                <p style="font-size:0.78rem; color:#94a3b8;">Automatically floats a glowing "⚡ 4DX Movie Experience" button on all streaming players!</p>
+                            </div>
+                        </div>
+                        <ol style="font-size:0.82rem; color:#cbd5e1; line-height:1.6; padding-left:18px;">
+                            <li>Open Chrome and navigate to <code style="color:#38bdf8; background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px;">chrome://extensions</code></li>
+                            <li>Toggle <b>Developer mode</b> ON in the top right corner.</li>
+                            <li>Click <b>Load unpacked</b> and select the <code style="color:#f59e0b; background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px;">extension/</code> directory of this project.</li>
+                            <li>Open any YouTube/Netflix video — the 4DX button appears automatically!</li>
+                        </ol>
+                        <button type="button" id="testExtensionRedirectBtn" class="btn-secondary-action" style="border-color:#a855f7; color:#c084fc;">🧪 Test 4DX Extension Stream Launcher</button>
+                    </div>
+                </div>
+
+                <!-- Live Stream Injector Tester Bar -->
+                <div class="converter-status-box" style="margin-top:16px; border-color:rgba(56,189,248,0.3);">
+                    <div style="display:flex; align-items:center; gap:10px; width:100%; flex-wrap:wrap;">
+                        <span style="font-size:0.85rem; font-weight:800; color:#38bdf8;">🧪 Quick Stream Test:</span>
+                        <button type="button" class="btn-secondary-action quick-stream-test-btn" data-url="https://www.youtube.com/watch?v=Way9Dexny3w" data-title="Dune: Part Two (Official 4DX Trailer)" style="padding:6px 12px; font-size:0.78rem;">▶️ YouTube Stream</button>
+                        <button type="button" class="btn-secondary-action quick-stream-test-btn" data-url="https://www.youtube.com/watch?v=GY4BgdUSpbE" data-title="RRR (4DX Extreme)" style="padding:6px 12px; font-size:0.78rem;">▶️ Pan-India 4DX</button>
+                        <button type="button" class="btn-secondary-action quick-stream-test-btn" data-url="https://www.youtube.com/watch?v=d9MyW72ELq0" data-title="Avatar: Way of Water (4DX 3D)" style="padding:6px 12px; font-size:0.78rem;">▶️ Global Cinema Stream</button>
                     </div>
                 </div>
             </section>

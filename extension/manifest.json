@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Digital Multiplex — 4DX Universal Streaming Converter",
+  "version": "1.0.0",
+  "description": "Automatically creates a 4DX Movie button on YouTube, Netflix, Prime Video, Hotstar, Twitch, Vimeo & all video streaming platforms to stream in 4DX with tactile haptics!",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Digital Multiplex 4DX Streamer"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_script.js"],
+      "css": ["content_style.css"],
+      "run_at": "document_end"
+    }
+  ]
+}
