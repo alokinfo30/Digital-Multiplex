@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Hub Containers
     const virtualTheaterHub = document.getElementById('virtualTheaterHub');
+    const recommendationsHub = document.getElementById('recommendationsHub');
     const contentDisplay = document.getElementById('contentDisplay');
     const seatSelectorHub = document.getElementById('seatSelectorHub');
     const concessionsHub = document.getElementById('concessionsHub');
@@ -22,6 +23,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingDiv = document.getElementById('loading');
     const loadingStatusText = document.getElementById('loadingStatusText');
     const geoLangBadge = document.getElementById('geoLangBadge');
+    const recommendationsGrid = document.getElementById('recommendationsGrid');
+    const refreshRecsBtn = document.getElementById('refreshRecsBtn');
+    const surpriseRecBtn = document.getElementById('surpriseRecBtn');
 
     // Virtual Screen & Canvas
     const canvas = document.getElementById('cinemaMovieCanvas');
@@ -383,14 +387,305 @@ document.addEventListener('DOMContentLoaded', function() {
             if (geoLangBadge) {
                 geoLangBadge.innerHTML = `🌐 Language: <b>${languageMap[selected].name.split('-')[0].trim()}</b>`;
             }
+            renderRecommendations();
             if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
             }
         });
     }
 
+    if (genreSelect) {
+        genreSelect.addEventListener('change', function() {
+            renderRecommendations();
+        });
+    }
+
+    if (ageGroupSelect) {
+        ageGroupSelect.addEventListener('change', function() {
+            renderRecommendations();
+        });
+    }
+
     // ---------------------------------------------------------
-    // 5. VIRTUAL IMAX SCREEN 60FPS CINEMATIC CANVAS ENGINE
+    // 5. SOCIAL SHARING ENGINE (WHATSAPP, INSTAGRAM, FACEBOOK, X, TELEGRAM)
+    // ---------------------------------------------------------
+    function getShareInviteData() {
+        const roomCode = (privateRoomCodeInput && privateRoomCodeInput.value) || 'FAMILY-2026';
+        const filmTitle = (featureFilms[activeFeatureFilmIdx] && featureFilms[activeFeatureFilmIdx].title) || 'Horizon Neo: 4DX Laser';
+        const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+        const text = `🎬 Join our private VIP 4DX Cinema Suite to watch "${filmTitle}" together in real-time with tactile 4DX haptics and live chat! 🍿💥 Room Code: #${roomCode} 👉 ${url}`;
+        return { roomCode, filmTitle, url, text };
+    }
+
+    function shareToWhatsApp() {
+        const { text } = getShareInviteData();
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        window.open(whatsappUrl, '_blank');
+    }
+
+    function shareToFacebook() {
+        const { url, filmTitle } = getShareInviteData();
+        const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(`Join our private 4DX virtual cinema watch party for "${filmTitle}"!`)}`;
+        window.open(fbUrl, '_blank');
+    }
+
+    function shareToInstagram() {
+        const { text, url } = getShareInviteData();
+        navigator.clipboard.writeText(`${text}\n\nLink: ${url}`);
+        alert('📸 VIP Watch Party invite text copied to clipboard! Open Instagram Stories or DMs and paste to invite your friends.');
+        window.open('https://www.instagram.com/', '_blank');
+    }
+
+    function shareToTwitter() {
+        const { text, url } = getShareInviteData();
+        const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        window.open(tweetUrl, '_blank');
+    }
+
+    function shareToTelegram() {
+        const { text, url } = getShareInviteData();
+        const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+        window.open(tgUrl, '_blank');
+    }
+
+    function shareNative() {
+        const { text, url, filmTitle } = getShareInviteData();
+        if (navigator.share) {
+            navigator.share({
+                title: `🎬 Digital Multiplex 4DX: ${filmTitle}`,
+                text: text,
+                url: url
+            }).catch(e => console.log('Share dismissed:', e));
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('🔗 Private Cinema invite link copied to clipboard!');
+        }
+    }
+
+    // Connect header share buttons
+    const headerWhatsApp = document.getElementById('headerShareWhatsApp');
+    const headerFacebook = document.getElementById('headerShareFacebook');
+    const headerInstagram = document.getElementById('headerShareInstagram');
+    const headerTwitter = document.getElementById('headerShareTwitter');
+    const headerTelegram = document.getElementById('headerShareTelegram');
+    const headerNative = document.getElementById('headerShareNative');
+
+    if (headerWhatsApp) headerWhatsApp.addEventListener('click', shareToWhatsApp);
+    if (headerFacebook) headerFacebook.addEventListener('click', shareToFacebook);
+    if (headerInstagram) headerInstagram.addEventListener('click', shareToInstagram);
+    if (headerTwitter) headerTwitter.addEventListener('click', shareToTwitter);
+    if (headerTelegram) headerTelegram.addEventListener('click', shareToTelegram);
+    if (headerNative) headerNative.addEventListener('click', shareNative);
+
+    // Connect room share buttons
+    const roomWhatsApp = document.getElementById('roomShareWhatsApp');
+    const roomInstagram = document.getElementById('roomShareInstagram');
+    const roomFacebook = document.getElementById('roomShareFacebook');
+
+    if (roomWhatsApp) roomWhatsApp.addEventListener('click', shareToWhatsApp);
+    if (roomInstagram) roomInstagram.addEventListener('click', shareToInstagram);
+    if (roomFacebook) roomFacebook.addEventListener('click', shareToFacebook);
+
+    // ---------------------------------------------------------
+    // 6. AI SMART RECOMMENDATION & ENGAGEMENT ENGINE
+    // ---------------------------------------------------------
+    const recommendationsCatalog = [
+        {
+            id: 'rec_scifi_1',
+            genre: 'sci_fi',
+            title: 'Quantum Convergence: 2099',
+            badge: '99% MATCH',
+            tag: '4DX Laser • Cyberpunk Thriller',
+            rating: '⭐ 9.4/10 • IMDb Top 10',
+            duration: '2h 18m',
+            age: 'young_adult',
+            desc: 'A rogue neural architect navigates underground frequency grids to reconstruct fractured memories of humanity.',
+            colorA: '#ef4444',
+            colorB: '#f59e0b'
+        },
+        {
+            id: 'rec_action_1',
+            genre: 'action',
+            title: 'Apex Velocity: Nitro Drift 4DX',
+            badge: '98% MATCH',
+            tag: 'Extreme Motion • Air Blast FX',
+            rating: '⭐ 9.1/10 • 96% Rotten Tomatoes',
+            duration: '1h 55m',
+            age: 'young_adult',
+            desc: 'High-octane hypercar racing through floating megastructure tracks with extreme G-force seat rumbles.',
+            colorA: '#38bdf8',
+            colorB: '#ef4444'
+        },
+        {
+            id: 'rec_mystery_1',
+            genre: 'thriller',
+            title: 'The Midnight Cipher',
+            badge: '97% MATCH',
+            tag: 'Dolby Atmos 3D • Psychological Noir',
+            rating: '⭐ 9.3/10 • Critics Choice',
+            duration: '2h 05m',
+            age: 'senior',
+            desc: 'An enigmatic detective decodes auditory audio frequencies from an abandoned Victorian broadcast station.',
+            colorA: '#8b5cf6',
+            colorB: '#ec4899'
+        },
+        {
+            id: 'rec_romance_1',
+            genre: 'romance',
+            title: 'Starlight Serenade Across Time',
+            badge: '96% MATCH',
+            tag: 'Acoustic Harmonies • Romantic Drama',
+            rating: '⭐ 8.9/10 • Audience Favorite',
+            duration: '1h 48m',
+            age: 'young_adult',
+            desc: 'Two musicians born centuries apart communicate through melodies trapped inside a cosmic lighthouse.',
+            colorA: '#ec4899',
+            colorB: '#f59e0b'
+        },
+        {
+            id: 'rec_nature_1',
+            genre: 'nature',
+            title: 'Realm of the Ancient Biosphere',
+            badge: '99% MATCH',
+            tag: 'IMAX 4DX Mist & Rain • 8K Ultra HDR',
+            rating: '⭐ 9.6/10 • Award Winning Doc',
+            duration: '1h 32m',
+            age: 'senior',
+            desc: 'Deep exploration into unexplored bioluminescent ocean trenches and subterranean fungal networks.',
+            colorA: '#10b981',
+            colorB: '#06b6d4'
+        },
+        {
+            id: 'rec_tech_1',
+            genre: 'tech',
+            title: 'Singularity: The Synthetic Dawn',
+            badge: '97% MATCH',
+            tag: '4DX Lightning Strobe • AI Epic',
+            rating: '⭐ 9.2/10 • Global Premiere',
+            duration: '2h 10m',
+            age: 'young_adult',
+            desc: 'The birth of the first benevolent sentient planetary superintelligence and humanity’s leap into cosmic exploration.',
+            colorA: '#06b6d4',
+            colorB: '#a855f7'
+        },
+        {
+            id: 'rec_comedy_1',
+            genre: 'comedy',
+            title: 'Galactic Standup: Laughs in Orbit',
+            badge: '95% MATCH',
+            tag: 'Comedy Special • Interactive Emojis',
+            rating: '⭐ 8.8/10 • Crowd Pleaser',
+            duration: '1h 20m',
+            age: 'baby',
+            desc: 'Hilarious misadventures of an alien comedy troupe touring across the solar system.',
+            colorA: '#f59e0b',
+            colorB: '#10b981'
+        }
+    ];
+
+    function renderRecommendations() {
+        if (!recommendationsGrid) return;
+        recommendationsGrid.innerHTML = '';
+
+        const selectedGenre = (genreSelect && genreSelect.value) || 'sci_fi';
+        const selectedAge = (ageGroupSelect && ageGroupSelect.value) || 'young_adult';
+
+        // Sort items: prioritizing user chosen genre and age
+        let filtered = [...recommendationsCatalog].sort((a, b) => {
+            let scoreA = (a.genre === selectedGenre ? 10 : 0) + (a.age === selectedAge ? 5 : 0);
+            let scoreB = (b.genre === selectedGenre ? 10 : 0) + (b.age === selectedAge ? 5 : 0);
+            return scoreB - scoreA;
+        });
+
+        filtered.forEach((rec, idx) => {
+            const card = document.createElement('div');
+            card.className = 'recommendation-card';
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="rec-badge-match">${rec.badge}</span>
+                    <span style="font-size:0.75rem; color:#94a3b8; font-weight:700;">${rec.duration}</span>
+                </div>
+                <div>
+                    <h3 class="rec-title">${rec.title}</h3>
+                    <div class="rec-meta-row" style="margin-top:4px;">
+                        <span style="color:#f59e0b;">${rec.rating}</span>
+                        <span>•</span>
+                        <span style="color:#38bdf8;">${rec.tag}</span>
+                    </div>
+                </div>
+                <p style="font-size:0.82rem; color:#cbd5e1; line-height:1.5;">${rec.desc}</p>
+                <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+                    <button type="button" class="rec-btn-action screen-rec-btn" data-id="${rec.id}">▶️ Screen Now in 4DX</button>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="btn-secondary-action book-rec-btn" style="flex:1; padding:6px; font-size:0.78rem;">🎟️ Book Seats</button>
+                        <button type="button" class="btn-secondary-action share-rec-btn" style="flex:1; padding:6px; font-size:0.78rem;">💬 Share</button>
+                    </div>
+                </div>
+            `;
+
+            // Screen button
+            const screenBtn = card.querySelector('.screen-rec-btn');
+            screenBtn.addEventListener('click', function() {
+                if (moviePlayingTitle) {
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${rec.title}" (${rec.tag})`;
+                }
+                featureFilms[activeFeatureFilmIdx].title = rec.title;
+                featureFilms[activeFeatureFilmIdx].tag = rec.tag;
+                featureFilms[activeFeatureFilmIdx].sub = rec.desc;
+                featureFilms[activeFeatureFilmIdx].colorA = rec.colorA;
+                featureFilms[activeFeatureFilmIdx].colorB = rec.colorB;
+
+                playSpatialAtmosSwell();
+                trigger4dxSeatRumble();
+                broadcastChatMessage('System', `🎬 Now screening AI-recommended feature: "${rec.title}"`);
+                window.scrollTo({ top: 120, behavior: 'smooth' });
+            });
+
+            // Book button
+            const bookBtn = card.querySelector('.book-rec-btn');
+            bookBtn.addEventListener('click', function() {
+                showHub('tickets');
+            });
+
+            // Share button
+            const shareBtn = card.querySelector('.share-rec-btn');
+            shareBtn.addEventListener('click', function() {
+                const roomCode = (privateRoomCodeInput && privateRoomCodeInput.value) || 'FAMILY-2026';
+                const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+                const text = `🎬 Check out "${rec.title}" (${rec.tag}) on Digital Multiplex! Join our 4DX suite: ${url}`;
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+            });
+
+            recommendationsGrid.appendChild(card);
+        });
+    }
+
+    renderRecommendations();
+
+    if (refreshRecsBtn) {
+        refreshRecsBtn.addEventListener('click', function() {
+            renderRecommendations();
+            playSpatialAtmosSwell();
+            refreshRecsBtn.textContent = '✅ Matches Refreshed';
+            setTimeout(() => { refreshRecsBtn.textContent = '🔄 Refresh Matches'; }, 1800);
+        });
+    }
+
+    if (surpriseRecBtn) {
+        surpriseRecBtn.addEventListener('click', function() {
+            const genres = ['sci_fi', 'action', 'thriller', 'romance', 'comedy', 'nature', 'tech'];
+            if (genreSelect) {
+                genreSelect.value = genres[Math.floor(Math.random() * genres.length)];
+                renderRecommendations();
+            }
+            playSpatialAtmosSwell();
+            trigger4dxSeatRumble();
+        });
+    }
+
+    // ---------------------------------------------------------
+    // 7. VIRTUAL IMAX SCREEN 60FPS CINEMATIC CANVAS ENGINE
     // ---------------------------------------------------------
     const featureFilms = [
         {
@@ -498,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             ctx.restore();
 
-            // Auto-4DX Sensory Motion Synchronization (Every ~180 frames)
+            // Auto-4DX Sensory Motion Synchronization (Every ~240 frames)
             if (isAuto4dx && animFrame % 240 === 0) {
                 const fxRand = Math.random();
                 if (fxRand < 0.4) {
@@ -574,7 +869,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 6. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
+    // 8. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
     // ---------------------------------------------------------
     let viewersList = [
         { name: 'Emma ❤️', avatar: '👩', seat: 'Seat 1', isFriend: true },
@@ -632,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 7. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
+    // 9. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
     // ---------------------------------------------------------
     function broadcastChatMessage(sender, text, isMe = false) {
         if (!chatMessagesBox) return;
@@ -677,11 +972,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (copyInviteLinkBtn) {
         copyInviteLinkBtn.addEventListener('click', function() {
-            const roomCode = privateRoomCodeInput.value || 'FAMILY-2026';
-            const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
-            navigator.clipboard.writeText(inviteUrl);
-            copyInviteLinkBtn.textContent = '✅ Invite Link Copied!';
-            setTimeout(() => { copyInviteLinkBtn.textContent = '🔗 Copy Invite Link'; }, 2200);
+            const { url } = getShareInviteData();
+            navigator.clipboard.writeText(url);
+            copyInviteLinkBtn.textContent = '✅ Link Copied!';
+            setTimeout(() => { copyInviteLinkBtn.textContent = '🔗 Copy Link'; }, 2200);
         });
     }
 
@@ -716,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 8. STUDIO & HUB TAB SWITCHER (8 HUBS)
+    // 10. STUDIO & HUB TAB SWITCHER (8 HUBS + RECOMMENDATIONS)
     // ---------------------------------------------------------
     function showHub(tabType) {
         currentType = tabType;
@@ -726,6 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Hide all hubs
         if (virtualTheaterHub) virtualTheaterHub.classList.add('hidden');
+        if (recommendationsHub) recommendationsHub.classList.add('hidden');
         if (contentDisplay) contentDisplay.classList.add('hidden');
         if (seatSelectorHub) seatSelectorHub.classList.add('hidden');
         if (concessionsHub) concessionsHub.classList.add('hidden');
@@ -733,6 +1028,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (tabType === 'virtual_theater') {
             if (virtualTheaterHub) virtualTheaterHub.classList.remove('hidden');
+            if (recommendationsHub) recommendationsHub.classList.remove('hidden');
+        } else if (tabType === 'recommendations') {
+            if (recommendationsHub) {
+                recommendationsHub.classList.remove('hidden');
+                recommendationsHub.scrollIntoView({ behavior: 'smooth' });
+            }
         } else if (tabType === 'tickets') {
             if (seatSelectorHub) seatSelectorHub.classList.remove('hidden');
             renderSeatMatrix();
@@ -753,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 9. VOICE MICROPHONE INPUT
+    // 11. VOICE MICROPHONE INPUT
     // ---------------------------------------------------------
     if (voiceMicBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -812,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 10. RANDOMIZE / SURPRISE ME
+    // 12. RANDOMIZE / SURPRISE ME
     // ---------------------------------------------------------
     const surpriseThemes = [
         "Time traveler accidentally replaces a pop music icon in 1985",
@@ -828,7 +1129,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const randomTheme = surpriseThemes[Math.floor(Math.random() * surpriseThemes.length)];
             if (quickThemeInput) quickThemeInput.value = randomTheme;
             const genres = ['sci_fi', 'action', 'thriller', 'romance', 'comedy', 'nature', 'tech'];
-            if (genreSelect) genreSelect.value = genres[Math.floor(Math.random() * genres.length)];
+            if (genreSelect) {
+                genreSelect.value = genres[Math.floor(Math.random() * genres.length)];
+                renderRecommendations();
+            }
             if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
             } else {
@@ -870,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 11. SCRIPT GENERATION & SIMULATION ENGINE
+    // 13. SCRIPT GENERATION & SIMULATION ENGINE
     // ---------------------------------------------------------
     function buildClientSimulation(type, age, lang, genre, userTheme) {
         const theme = userTheme || 'Epic Galactic Odyssey';
@@ -1017,7 +1321,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 12. TEXT-TO-SPEECH NARRATION (TTS)
+    // 14. TEXT-TO-SPEECH NARRATION (TTS)
     // ---------------------------------------------------------
     if (speakScriptBtn && 'speechSynthesis' in window) {
         speakScriptBtn.addEventListener('click', function() {
@@ -1061,7 +1365,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 13. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
+    // 15. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
     // ---------------------------------------------------------
     let selectedSeats = ['C3', 'C4'];
     function renderSeatMatrix() {

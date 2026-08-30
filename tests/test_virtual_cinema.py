@@ -40,12 +40,17 @@ class TestVirtualCinema(unittest.TestCase):
         self.assertIn("theaterStrobeOverlay", html)
         self.assertIn("screenFogOverlay", html)
 
-    def test_spatial_audio_and_dim_lights_controls_present(self):
+    def test_social_sharing_and_recommendations_present(self):
         response = self.client.get("/")
         html = response.get_data(as_text=True)
 
-        self.assertIn("dimLightsBtn", html)
-        self.assertIn("spatialAudioBtn", html)
+        self.assertIn("headerShareWhatsApp", html)
+        self.assertIn("headerShareInstagram", html)
+        self.assertIn("headerShareFacebook", html)
+        self.assertIn("roomShareWhatsApp", html)
+        self.assertIn("recommendationsHub", html)
+        self.assertIn("recommendationsGrid", html)
+        self.assertIn("refreshRecsBtn", html)
 
 
 if __name__ == "__main__":
