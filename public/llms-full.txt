@@ -1,0 +1,51 @@
+# Digital Multiplex — Comprehensive Architecture & API Documentation
+> Full Technical Specification for Autonomous Multi-Agent AI Cinema, Music & Media Production Hub
+
+- **Platform Name:** Digital Multiplex
+- **Author & Lead Architect:** Alok Srivastava
+- **GitHub Repository:** https://github.com/alokinfo30/Digital-Multiplex
+- **Core Technologies:** Python 3.11, CrewAI, Flask, OpenRouter (GPT-4o, Mistral 8x22B, Llama 3.3, Claude 3.5), TMDB API, LibreTranslate, Web Audio API, Web Speech API.
+
+---
+
+## 1. System Overview
+Digital Multiplex is a next-generation decentralized entertainment production platform. It coordinates specialized autonomous AI agents to dynamically generate Hollywood-grade movie screenplays, song lyrics with chord notations, live radio broadcasts, 4K documentary scripts, and podcast show notes customized across 3 age tiers and 14+ languages with automatic location detection.
+
+---
+
+## 2. The 8 Interactive Experience Hubs
+1. **Cinema Studio**: Generates loglines, character ensembles, scene setups [INT/EXT], formatted dialogue, and production metadata.
+2. **Music Studio**: Generates verses, chorus, hook, bridge, BPM tempo, musical key, and guitar/piano chords (`[Am] [F] [C] [G]`).
+3. **Radio & Talk Show**: Late-night RJ broadcasts, caller phone-in dialogue, sponsor spots, and soundbed cues.
+4. **Documentary Vault**: Cinematic 4K docu-series narrations on cosmos, nature, wilderness, and deep technology.
+5. **Podcast Hub**: Multi-host conversational breakdowns, episode outlines, and actionable show notes.
+6. **VIP Seat Matrix**: Interactive IMAX screen and seat reservation engine with NFC smart turnstile simulator.
+7. **Concessions Express**: Gourmet popcorn, nachos, slushies cart with real-time promo code engine (`MULTIPLEX20`).
+8. **Cinephile Trivia Arena**: Gamified 5-question pop-culture quiz with instant scoring and Multiplex Stars loyalty wallet.
+
+---
+
+## 3. Location-Based Language Auto-Detection
+The client automatically discovers user timezone and browser locale to serve the optimal language:
+- `hi`: Hindi (India)
+- `en`: English (Global)
+- `es`: Spanish (Spain & Latin America)
+- `fr`: French (France & Francophone)
+- `de`: German (Germany & Austria)
+- `pt`: Portuguese (Brazil & Portugal)
+- `ar`: Arabic (Middle East & North Africa)
+- `zh`: Chinese (China & East Asia)
+- `ja`: Japanese (Japan)
+- `ko`: Korean (South Korea)
+- `it`: Italian (Italy)
+- `ru`: Russian (Eastern Europe)
+- `nl`: Dutch (Netherlands)
+- `tr`: Turkish (Turkey)
+
+---
+
+## 4. API Endpoints
+- `GET /health` & `GET /api/health`: System heartbeat.
+- `GET /api/languages`: Supported language list.
+- `POST /api/generate`: Multi-agent entertainment generation dispatcher.
+- `GET /api/result/<job_id>`: Asynchronous background polling.

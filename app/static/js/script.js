@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // ---------------------------------------------------------
-    // 1. DOM ELEMENTS
+    // 1. DOM ELEMENTS & STATE INITIALIZATION
     // ---------------------------------------------------------
     const studioTabs = document.querySelectorAll('.studio-tab-btn');
     const ageGroupSelect = document.getElementById('ageGroup');
@@ -10,9 +10,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickGenerateBtn = document.getElementById('quickGenerateBtn');
     const randomizeBtn = document.getElementById('randomizeBtn');
     const voiceMicBtn = document.getElementById('voiceMicBtn');
+    const sfxJingleBtn = document.getElementById('sfxJingleBtn');
     const loadingDiv = document.getElementById('loading');
     const loadingStatusText = document.getElementById('loadingStatusText');
     const contentDisplay = document.getElementById('contentDisplay');
+    const seatSelectorHub = document.getElementById('seatSelectorHub');
+    const concessionsHub = document.getElementById('concessionsHub');
+    const triviaHub = document.getElementById('triviaHub');
     const scriptBody = document.getElementById('scriptBody');
     const scriptTitleHeading = document.getElementById('scriptTitleHeading');
     const speakScriptBtn = document.getElementById('speakScriptBtn');
@@ -26,7 +30,68 @@ document.addEventListener('DOMContentLoaded', function() {
     let isRecording = false;
 
     // ---------------------------------------------------------
-    // 2. LOCATION & BROWSER AUTOMATIC LANGUAGE DETECTION
+    // 2. WEB AUDIO API SYNTHESIZER (ZERO ASSET DEPENDENCY)
+    // ---------------------------------------------------------
+    let audioCtx = null;
+    function getAudioContext() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    function playChordChime() {
+        try {
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+            const freqs = [261.63, 329.63, 392.00, 523.25]; // C Major chord (C4, E4, G4, C5)
+            freqs.forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.001, now + idx * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.2, now + idx * 0.08 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now + idx * 0.08);
+                osc.stop(now + 1.8);
+            });
+        } catch (e) {
+            console.log('Web Audio Chord Error:', e);
+        }
+    }
+
+    function playNfcTurnstileChime() {
+        try {
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, now); // D5
+            osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.15); // A5
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.55);
+        } catch (e) {
+            console.log('Web Audio NFC Error:', e);
+        }
+    }
+
+    if (sfxJingleBtn) {
+        sfxJingleBtn.addEventListener('click', playChordChime);
+    }
+
+    // ---------------------------------------------------------
+    // 3. LOCATION & BROWSER AUTOMATIC LANGUAGE DETECTION
     // ---------------------------------------------------------
     const languageMap = {
         'hi': { name: 'HINDI (HI) - हिन्दी', locale: 'hi-IN', country: 'India' },
@@ -46,13 +111,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function detectUserLocationLanguage() {
-        // 1. Check if user already manually selected a language
         const savedLang = localStorage.getItem('multiplex_user_lang');
         if (savedLang && languageMap[savedLang]) {
             return { lang: savedLang, method: 'Saved Preference' };
         }
 
-        // 2. Detect from browser navigator.language
         const browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
         for (const code of Object.keys(languageMap)) {
             if (browserLang.startsWith(code)) {
@@ -60,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // 3. Heuristic detection via User TimeZone
         try {
             const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
             if (timeZone.includes('Kolkata') || timeZone.includes('Calcutta') || timeZone.includes('Delhi') || timeZone.includes('India')) {
@@ -87,7 +149,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return { lang: 'en', method: 'Default (Global)' };
     }
 
-    // Populate language selector with all 14 languages
     if (languageSelect) {
         languageSelect.innerHTML = '';
         Object.keys(languageMap).forEach(code => {
@@ -104,31 +165,54 @@ document.addEventListener('DOMContentLoaded', function() {
             geoLangBadge.innerHTML = `📍 Location Auto-Detect: <b>${languageMap[detected.lang].name.split('-')[0].trim()}</b>`;
         }
 
-        // On User Change
         languageSelect.addEventListener('change', function() {
             const selected = this.value;
             localStorage.setItem('multiplex_user_lang', selected);
             if (geoLangBadge) {
                 geoLangBadge.innerHTML = `🌐 Language: <b>${languageMap[selected].name.split('-')[0].trim()}</b>`;
             }
-            generateEntertainmentContent(currentType);
+            if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
+                generateEntertainmentContent(currentType);
+            }
         });
     }
 
     // ---------------------------------------------------------
-    // 3. STUDIO TAB SWITCHER
+    // 4. STUDIO & HUB TAB SWITCHER (8 HUBS)
     // ---------------------------------------------------------
+    function showHub(tabType) {
+        currentType = tabType;
+        studioTabs.forEach(t => t.classList.remove('active'));
+        const activeTab = document.querySelector(`.studio-tab-btn[data-type="${tabType}"]`);
+        if (activeTab) activeTab.classList.add('active');
+
+        // Hide all hubs
+        if (contentDisplay) contentDisplay.classList.add('hidden');
+        if (seatSelectorHub) seatSelectorHub.classList.add('hidden');
+        if (concessionsHub) concessionsHub.classList.add('hidden');
+        if (triviaHub) triviaHub.classList.add('hidden');
+
+        if (tabType === 'tickets') {
+            if (seatSelectorHub) seatSelectorHub.classList.remove('hidden');
+            renderSeatMatrix();
+        } else if (tabType === 'concessions') {
+            if (concessionsHub) concessionsHub.classList.remove('hidden');
+        } else if (tabType === 'trivia') {
+            if (triviaHub) triviaHub.classList.remove('hidden');
+        } else {
+            if (contentDisplay) contentDisplay.classList.remove('hidden');
+            generateEntertainmentContent(tabType);
+        }
+    }
+
     studioTabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            studioTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            currentType = this.dataset.type;
-            generateEntertainmentContent(currentType);
+            showHub(this.dataset.type);
         });
     });
 
     // ---------------------------------------------------------
-    // 4. VOICE MICROPHONE INPUT
+    // 5. VOICE MICROPHONE INPUT
     // ---------------------------------------------------------
     if (voiceMicBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -161,24 +245,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            generateEntertainmentContent(currentType);
+            if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
+                generateEntertainmentContent(currentType);
+            }
         };
 
         recognition.onerror = function() {
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            if (quickThemeInput) quickThemeInput.placeholder = "Enter custom theme / story premise...";
+            if (quickThemeInput) quickThemeInput.placeholder = "Enter custom premise...";
         };
 
         recognition.onend = function() {
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            if (quickThemeInput) quickThemeInput.placeholder = "Enter custom theme / story premise...";
+            if (quickThemeInput) quickThemeInput.placeholder = "Enter custom premise...";
         };
     }
 
     // ---------------------------------------------------------
-    // 5. RANDOMIZE / SURPRISE ME
+    // 6. RANDOMIZE / SURPRISE ME
     // ---------------------------------------------------------
     const surpriseThemes = [
         "Time traveler accidentally replaces a pop music icon in 1985",
@@ -195,13 +281,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (quickThemeInput) quickThemeInput.value = randomTheme;
             const genres = ['sci_fi', 'action', 'thriller', 'romance', 'comedy', 'nature', 'tech'];
             if (genreSelect) genreSelect.value = genres[Math.floor(Math.random() * genres.length)];
-            generateEntertainmentContent(currentType);
+            if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
+                generateEntertainmentContent(currentType);
+            }
         });
     }
 
     if (quickGenerateBtn) {
         quickGenerateBtn.addEventListener('click', function() {
-            generateEntertainmentContent(currentType);
+            if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
+                generateEntertainmentContent(currentType);
+            } else {
+                showHub('movie');
+            }
         });
     }
 
@@ -216,14 +308,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 6. MULTILINGUAL & AGE-APPROPRIATE GENERATION ENGINE
+    // 7. SCRIPT GENERATION SIMULATION & BACKEND SYNC
     // ---------------------------------------------------------
     function buildClientSimulation(type, age, lang, genre, userTheme) {
-        const theme = userTheme || 'Epic Cinematic Journey';
+        const theme = userTheme || 'Epic Galactic Odyssey';
         const langInfo = languageMap[lang] || languageMap['en'];
         const langName = langInfo.name.split('-')[0].trim();
 
-        // Multilingual headers & subtitles
         if (type === 'movie') {
             if (lang === 'hi') {
                 return `<h2>🎥 विशेष ब्लॉकबस्टर पटकथा: "होराइजन नियॉन की दास्तान"</h2>
@@ -231,36 +322,17 @@ document.addEventListener('DOMContentLoaded', function() {
 <p><b>विषय (Theme):</b> "${theme}"</p>
 <br/>
 <h3>🌟 कहानी का सार (Logline):</h3>
-<blockquote>2088 के साइबरपंक शहर में, एक संगीतकार को ऐसा ध्वनि संकेत मिलता है जो शहर के केंद्रीय एआई नेटवर्क द्वारा छिपाई गई मानवीय स्मृतियों को अनलॉक कर देता है।</blockquote>
+<blockquote>2088 के साइबरपंक शहर में, एक विद्रोही साउंड आर्किटेक्ट को एक ऐसा गुप्त संकेत मिलता है जो ग्रह के केंद्रीय एआई नेटवर्क द्वारा मिटाई गई यादों को अनलॉक कर देता है।</blockquote>
 <br/>
 <h3>🎬 मुख्य पात्र:</h3>
-<p>• <b>कैलन वोस:</b> विद्रोही साउंड इंजीनियर और सिंथ मास्टर।</p>
-<p>• <b>आर्या चेन:</b> मुख्य साइबर अन्वेषक।</p>
+<p>• <b>कैलन वोस (मुख्य नायक):</b> अंडरग्राउंड ऑडियो इंजीनियर और सिंथ मास्टर।</p>
+<p>• <b>आर्या चेन:</b> साइबर क्राइम ब्रांच की मुख्य अन्वेषक।</p>
 <br/>
 <h3>🎭 दृश्य पटकथा (Scene Script - Act I):</h3>
 <p><b>[स्थान: अंडरग्राउंड साउंड लैब - रात]</b><br/>
-कांच की छत पर बारिश की बूंदें गिर रही हैं। होलोग्राफिक तरंगें चमक रही हैं। कैलन स्लाइडर आगे बढ़ाता है।</p>
+छत पर बारिश की बूंदें गिर रही हैं। लाल और सुनहरी होलोग्राफिक तरंगें हवा में तैर रही हैं।</p>
 <br/>
-<p><b>कैलन:</b><br/><i>"उन्होंने कहा था कि अतीत मिटा दिया गया है... लेकिन ध्वनियां कभी गायब नहीं होतीं, वे केवल सुने जाने का इंतज़ार करती हैं।"</i></p>`;
-            }
-
-            if (lang === 'es') {
-                return `<h2>🎥 Guión Cinematográfico: "Las Crónicas de Horizon Neo"</h2>
-<p><b>Género:</b> ${genre.toUpperCase()} | <b>Público:</b> ${age.toUpperCase()} | <b>Idioma:</b> ${langName}</p>
-<p><b>Tema:</b> "${theme}"</p>
-<br/>
-<h3>🌟 Sinopsis Principal:</h3>
-<blockquote>En la megaciudad de Neo-Kyoto en 2088, un arquitecto de sonido descubre una señal armónica capaz de desbloquear memorias humanas suprimidas por la red planetaria.</blockquote>
-<br/>
-<h3>🎬 Personajes Principales:</h3>
-<p>• <b>Kaelen Voss:</b> Ingeniero de audio rebelde.</p>
-<p>• <b>Aria Chen:</b> Investigadora de cibernética cuántica.</p>
-<br/>
-<h3>🎭 Escena (Acto I):</h3>
-<p><b>[INT. LABORATORIO SUBTERRÁNEO - NOCHE]</b><br/>
-La lluvia golpea el tragaluz de plexiglás. Las ondas holográficas brillan en carmesí y oro.</p>
-<br/>
-<p><b>KAELEN:</b><br/><i>"Nos dijeron que el pasado fue borrado. Pero las frecuencias no desaparecen... solo esperan ser escuchadas."</i></p>`;
+<p><b>कैलन:</b><br/><i>"वे कहते हैं कि पुरानी यादें मिट चुकी हैं... लेकिन तरंगे कभी नहीं मरतीं, वे बस सुने जाने का इंतज़ार करती हैं।"</i></p>`;
             }
 
             return `<h2>🎥 Featured Blockbuster Screenplay: "Chronicles of Horizon Neo"</h2>
@@ -285,7 +357,7 @@ Rain drums against the plexiglass skylight. Holographic waveforms pulse in vibra
             if (lang === 'hi') {
                 return `<h2>🎵 मूल गीत और स्वरलिपि: "सितारों की गूंज"</h2>
 <p><b>शैली:</b> ${genre.toUpperCase()} पॉप / ध्वनिक | <b>ताल (BPM):</b> 124 | <b>भाषा:</b> ${langName}</p>
-<p><b>भाव (Mood):</b> "${theme}"</p>
+<p><b>भाव:</b> "${theme}"</p>
 <br/>
 <h3>🎸 [पहला अंतरा (Verse 1)]</h3>
 <p>शहर की रोशनियों में ढूंढता हूं तुझे,<br/>
@@ -319,22 +391,22 @@ We'll be dancing till the break of day!</blockquote>`;
 
         if (type === 'radio') {
             return `<h2>📻 Live Radio Broadcast: "Nightwave FM 104.5 — The Pulse"</h2>
-<p><b>Format:</b> Interactive Talk & Hits | <b>Audience:</b> ${age.toUpperCase()} | <b>Language:</b> ${langName}</p>
-<p><b>Topic:</b> "${theme}"</p>
+<p><b>Format:</b> Interactive Late-Night Talk & Beats | <b>Audience:</b> ${age.toUpperCase()} | <b>Language:</b> ${langName}</p>
+<p><b>Show Topic:</b> "${theme}"</p>
 <br/>
 <h3>🎙️ [ON AIR INTRO]</h3>
-<p><b>[SFX: STATION CHIME JINGLE & UPBEAT SOUNDBED]</b></p>
+<p><b>[SFX: STATION CHIME JINGLE & SUBTLE VINYL CRACKLE]</b></p>
 <br/>
 <p><b>RJ MAX:</b><br/>
-<i>"Welcome back to Nightwave FM! Broadcasting live in ${langName} across all frequencies. Tonight's listener spotlight: '${theme}'. Caller Line 1 is buzzing — let's take our first listener call!"</i></p>`;
+<i>"Good evening night owls! You are locked in with RJ Max on Nightwave FM 104.5 in ${langName}. Tonight, we're diving deep into our listener spotlight: '${theme}'. Caller Line 3 is live right now!"</i></p>`;
         }
 
         if (type === 'documentary') {
-            return `<h2>📽️ Cinematic Docu-Series: "Wonders of the Unseen Realm"</h2>
-<p><b>Category:</b> Nature & Cosmic Exploration | <b>Language:</b> ${langName} | <b>Pacing:</b> Immersive 4K</p>
+            return `<h2>📽️ IMAX Cinematic Docu-Series: "Wonders of the Unseen Realm"</h2>
+<p><b>Category:</b> Nature & Science Exploration | <b>Language:</b> ${langName} | <b>Pacing:</b> Immersive 4K</p>
 <p><b>Subject:</b> "${theme}"</p>
 <br/>
-<h3>🎙️ Narrator Voiceover:</h3>
+<h3>🎙️ Narrator Voiceover [ACT I - THE HIDDEN CORRIDORS]:</h3>
 <blockquote>"Beneath the tranquil canopy lies an intricate network of biological communication. Millions of fungal hyphae transmit electrical pulses, sharing nutrients across entire ancient forests in a silent symphony of survival."</blockquote>`;
         }
 
@@ -344,8 +416,8 @@ We'll be dancing till the break of day!</blockquote>`;
 <br/>
 <h3>🎧 Episode Outline:</h3>
 <p>• <b>[00:00 - 04:30]:</b> Welcome & Breakdown of ${theme}.</p>
-<p>• <b>[04:30 - 18:45]:</b> Expert Perspectives & Creative Insights.</p>
-<p>• <b>[18:45 - 28:00]:</b> Summary & Listener Q&A.</p>`;
+<p>• <b>[04:30 - 18:45]:</b> Expert Perspectives & Creative Frameworks.</p>
+<p>• <b>[18:45 - 28:00]:</b> Summary & Actionable Takeaways.</p>`;
     }
 
     async function generateEntertainmentContent(type) {
@@ -362,10 +434,7 @@ We'll be dancing till the break of day!</blockquote>`;
             type: type,
             age_group: age,
             language: lang,
-            extra: {
-                theme: customTheme || genre,
-                genre: genre
-            }
+            extra: { theme: customTheme || genre, genre: genre }
         };
 
         try {
@@ -377,15 +446,12 @@ We'll be dancing till the break of day!</blockquote>`;
 
             if (response.ok) {
                 const data = await response.json();
-                if (data.job_id) {
-                    await pollJobResult(data.job_id);
-                    return;
-                } else if (data.status === 'completed' && data.result) {
+                if (data.status === 'completed' && data.result) {
                     renderScriptResult(data.result, type);
                     return;
                 }
             }
-            throw new Error('Fallback to local intelligence');
+            throw new Error('Fallback simulation');
         } catch (e) {
             await new Promise(r => setTimeout(r, 600));
             const simResult = buildClientSimulation(type, age, lang, genre, customTheme);
@@ -396,34 +462,10 @@ We'll be dancing till the break of day!</blockquote>`;
         }
     }
 
-    async function pollJobResult(jobId) {
-        for (let i = 0; i < 20; i++) {
-            await new Promise(r => setTimeout(r, 1000));
-            try {
-                const r = await fetch(`/api/result/${jobId}`);
-                if (r.ok) {
-                    const data = await r.json();
-                    if (data.status === 'completed' && data.result) {
-                        renderScriptResult(data.result, currentType);
-                        return;
-                    }
-                }
-            } catch (err) {
-                break;
-            }
-        }
-        const sim = buildClientSimulation(currentType, ageGroupSelect.value, languageSelect.value, genreSelect.value, quickThemeInput.value);
-        renderScriptResult(sim, currentType);
-    }
-
     function renderScriptResult(htmlContent, type) {
         currentScriptData = htmlContent;
-        if (scriptBody) {
-            scriptBody.innerHTML = htmlContent;
-        }
-        if (scriptTitleHeading) {
-            scriptTitleHeading.textContent = `🎬 ${type.toUpperCase()} Studio Showcase`;
-        }
+        if (scriptBody) scriptBody.innerHTML = htmlContent;
+        if (scriptTitleHeading) scriptTitleHeading.textContent = `🎬 ${type.toUpperCase()} Studio Showcase`;
         if (contentDisplay) {
             contentDisplay.classList.remove('hidden');
             contentDisplay.scrollIntoView({ behavior: 'smooth' });
@@ -431,7 +473,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 7. MULTILINGUAL AUDIO TEXT-TO-SPEECH SYNTHESIS
+    // 8. TEXT-TO-SPEECH NARRATION (TTS)
     // ---------------------------------------------------------
     if (speakScriptBtn && 'speechSynthesis' in window) {
         speakScriptBtn.addEventListener('click', function() {
@@ -450,9 +492,6 @@ We'll be dancing till the break of day!</blockquote>`;
         });
     }
 
-    // ---------------------------------------------------------
-    // 8. COPY & EXPORT SCRIPT
-    // ---------------------------------------------------------
     if (copyScriptBtn) {
         copyScriptBtn.addEventListener('click', function() {
             if (scriptBody) {
@@ -476,4 +515,192 @@ We'll be dancing till the break of day!</blockquote>`;
             }
         });
     }
+
+    // ---------------------------------------------------------
+    // 9. VIP SEAT MATRIX CONTROLLER (MODULE 6)
+    // ---------------------------------------------------------
+    let selectedSeats = ['C3', 'C4'];
+    function renderSeatMatrix() {
+        const grid = document.getElementById('seatMatrixGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const rows = ['A', 'B', 'C', 'D'];
+        rows.forEach(row => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'seat-row';
+            const label = document.createElement('span');
+            label.className = 'seat-row-label';
+            label.textContent = row;
+            rowDiv.appendChild(label);
+
+            for (let i = 1; i <= 8; i++) {
+                const seatId = `${row}${i}`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'cinema-seat-btn';
+                if (row === 'C' || row === 'D') btn.classList.add('vip');
+                btn.textContent = i;
+                btn.dataset.seat = seatId;
+
+                if (selectedSeats.includes(seatId)) {
+                    btn.classList.add('selected');
+                }
+
+                btn.addEventListener('click', function() {
+                    if (selectedSeats.includes(seatId)) {
+                        selectedSeats = selectedSeats.filter(s => s !== seatId);
+                        btn.classList.remove('selected');
+                    } else {
+                        selectedSeats.push(seatId);
+                        btn.classList.add('selected');
+                    }
+                    const passText = document.getElementById('passSeatsText');
+                    if (passText) {
+                        passText.textContent = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None Selected';
+                    }
+                });
+
+                rowDiv.appendChild(btn);
+            }
+            grid.appendChild(rowDiv);
+        });
+    }
+
+    const nfcGateTapBtn = document.getElementById('nfcGateTapBtn');
+    if (nfcGateTapBtn) {
+        nfcGateTapBtn.addEventListener('click', function() {
+            playNfcTurnstileChime();
+            nfcGateTapBtn.textContent = '✅ Gate Unlocked (NFC OK)';
+            setTimeout(() => { nfcGateTapBtn.textContent = '📱 NFC Gate Tap'; }, 2200);
+        });
+    }
+
+    const confirmSeatsBtn = document.getElementById('confirmSeatsBtn');
+    if (confirmSeatsBtn) {
+        confirmSeatsBtn.addEventListener('click', function() {
+            playChordChime();
+            alert(`🎟️ VIP Tickets Confirmed for Seats: ${selectedSeats.join(', ')}! Pass ready on your digital wallet.`);
+        });
+    }
+
+    // ---------------------------------------------------------
+    // 10. CONCESSIONS & SNACK BAR CONTROLLER (MODULE 7)
+    // ---------------------------------------------------------
+    let cart = [];
+    let discountRate = 0.0;
+
+    document.querySelectorAll('.add-snack-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const name = this.dataset.name;
+            const price = parseFloat(this.dataset.price);
+            cart.push({ name, price });
+            updateCartUI();
+        });
+    });
+
+    const applyPromoBtn = document.getElementById('applyPromoBtn');
+    if (applyPromoBtn) {
+        applyPromoBtn.addEventListener('click', function() {
+            const code = (document.getElementById('promoCodeInput').value || '').trim().toUpperCase();
+            if (code === 'MULTIPLEX20' || code === 'POPCORN50') {
+                discountRate = 0.20;
+                alert('🎉 Promo Code Applied! 20% Discount Activated.');
+            } else {
+                alert('❌ Invalid code. Use "MULTIPLEX20" for 20% discount.');
+            }
+            updateCartUI();
+        });
+    }
+
+    function updateCartUI() {
+        const list = document.getElementById('cartItemsList');
+        const totalText = document.getElementById('cartTotalText');
+        if (!list || !totalText) return;
+
+        if (cart.length === 0) {
+            list.innerHTML = '<li style="color:#94a3b8; font-size:0.9rem;">Cart is empty. Click "+ Add to Cart" above!</li>';
+            totalText.textContent = '$0.00';
+            return;
+        }
+
+        list.innerHTML = '';
+        let subtotal = 0;
+        cart.forEach((item, idx) => {
+            subtotal += item.price;
+            const li = document.createElement('li');
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+            li.style.color = '#e2e8f0';
+            li.innerHTML = `<span>${item.name}</span><b>$${item.price.toFixed(2)}</b>`;
+            list.appendChild(li);
+        });
+
+        const total = subtotal * (1 - discountRate);
+        totalText.textContent = `$${total.toFixed(2)}` + (discountRate > 0 ? ' (20% OFF)' : '');
+    }
+
+    // ---------------------------------------------------------
+    // 11. CINEPHILE TRIVIA ARENA CONTROLLER (MODULE 8)
+    // ---------------------------------------------------------
+    let triviaPoints = 450;
+    const triviaQuestions = [
+        {
+            q: "Which revolutionary sci-fi film popularized 'Bullet Time' in 1999?",
+            opts: ["A) The Matrix", "B) Blade Runner", "C) Minority Report", "D) Total Recall"],
+            ans: 0
+        },
+        {
+            q: "Who composed the iconic soundtrack for 'Interstellar' & 'Inception'?",
+            opts: ["A) John Williams", "B) Hans Zimmer", "C) Ennio Morricone", "D) Howard Shore"],
+            ans: 1
+        },
+        {
+            q: "Which movie won the Oscar for Best Picture in 2020 (First Non-English film)?",
+            opts: ["A) 1917", "B) Parasite", "C) Roma", "D) Joker"],
+            ans: 1
+        }
+    ];
+    let currentTriviaIdx = 0;
+
+    function loadTriviaQuestion(idx) {
+        const qData = triviaQuestions[idx];
+        const title = document.getElementById('triviaQuestionTitle');
+        const grid = document.getElementById('triviaOptionsGrid');
+        const feedback = document.getElementById('triviaFeedbackText');
+        if (!title || !grid) return;
+
+        title.textContent = qData.q;
+        grid.innerHTML = '';
+        if (feedback) feedback.textContent = '';
+
+        qData.opts.forEach((optText, oIdx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'trivia-btn';
+            btn.textContent = optText;
+
+            btn.addEventListener('click', function() {
+                if (oIdx === qData.ans) {
+                    btn.classList.add('correct');
+                    triviaPoints += 50;
+                    playChordChime();
+                    if (feedback) feedback.textContent = '🎉 Correct Answer! +50 Multiplex Stars awarded!';
+                } else {
+                    btn.classList.add('incorrect');
+                    if (feedback) feedback.textContent = '❌ Incorrect. Good try!';
+                }
+                const ptsText = document.getElementById('triviaPointsText');
+                if (ptsText) ptsText.textContent = `🌟 ${triviaPoints} STARS`;
+
+                setTimeout(() => {
+                    currentTriviaIdx = (currentTriviaIdx + 1) % triviaQuestions.length;
+                    loadTriviaQuestion(currentTriviaIdx);
+                }, 2200);
+            });
+
+            grid.appendChild(btn);
+        });
+    }
+
+    loadTriviaQuestion(0);
 });
