@@ -59,21 +59,23 @@ def create_app():
     @app.after_request
     def add_security_headers(response):
         response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         response.headers['Permissions-Policy'] = 'geolocation=(), camera=(), microphone=(self)'
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.youtube-nocookie.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
-            "img-src 'self' data: https://img.shields.io https://image.tmdb.org https://raw.githubusercontent.com; "
-            "connect-src 'self' https://openrouter.ai https://api.themoviedb.org; "
+            "img-src 'self' data: blob: https: https://i.ytimg.com https://img.youtube.com https://img.shields.io https://image.tmdb.org https://raw.githubusercontent.com; "
+            "media-src 'self' blob: data: https:; "
+            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://player.twitch.tv https://*.dailymotion.com https://*.streamable.com; "
+            "child-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://player.twitch.tv; "
+            "connect-src 'self' blob: data: https: https://openrouter.ai https://api.themoviedb.org https://www.youtube.com https://*.googlevideo.com; "
             "object-src 'none'; "
             "base-uri 'self'; "
-            "frame-ancestors 'none'; "
             "form-action 'self';"
         )
         return response

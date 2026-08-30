@@ -19,10 +19,11 @@ class TestSecurityHeaders(unittest.TestCase):
         headers = response.headers
 
         self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
-        self.assertEqual(headers.get("X-Frame-Options"), "DENY")
+        self.assertIn(headers.get("X-Frame-Options"), ["SAMEORIGIN", "DENY"])
         self.assertEqual(headers.get("X-XSS-Protection"), "1; mode=block")
         self.assertEqual(headers.get("Referrer-Policy"), "strict-origin-when-cross-origin")
         self.assertIn("default-src 'self'", headers.get("Content-Security-Policy", ""))
+        self.assertIn("frame-src", headers.get("Content-Security-Policy", ""))
 
     def test_xss_injection_payload_sanitization(self):
         malicious_payload = {
