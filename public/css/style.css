@@ -1,11 +1,12 @@
 /* ==========================================================================
    🎬 Digital Multiplex — Next-Gen AI Cinema & Entertainment Studio UI
+   Ultra-Responsive (Mobile, Tablet, Laptop, Desktop)
    ========================================================================== */
 
 :root {
     --bg-base: #060813;
     --bg-surface: #0c1222;
-    --bg-card: rgba(15, 23, 42, 0.82);
+    --bg-card: rgba(15, 23, 42, 0.85);
     --bg-card-hover: rgba(30, 41, 59, 0.95);
     --border-subtle: rgba(255, 255, 255, 0.08);
     --border-active: rgba(239, 68, 68, 0.5);
@@ -16,6 +17,7 @@
     --cinema-gold-glow: rgba(245, 158, 11, 0.35);
     --cinema-purple: #8b5cf6;
     --cinema-cyan: #06b6d4;
+    --cinema-emerald: #10b981;
     
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
@@ -34,13 +36,14 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: radial-gradient(circle at 50% -10%, #31102e 0%, #060813 45%, #020307 100%);
     min-height: 100vh;
-    padding: 16px;
+    padding: clamp(8px, 2vw, 20px);
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
@@ -65,26 +68,27 @@ body {
 
 .app-container {
     max-width: 1280px;
+    width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: clamp(14px, 2.5vw, 24px);
 }
 
 /* ==========================================================================
    1. LIVE MARQUEE & STUDIO TELEMETRY BAR
    ========================================================================== */
 .marquee-ticker {
-    background: rgba(15, 23, 42, 0.9);
+    background: rgba(15, 23, 42, 0.92);
     backdrop-filter: blur(16px);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    padding: 12px 20px;
+    padding: clamp(10px, 1.5vw, 14px) clamp(14px, 2vw, 22px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 12px;
     box-shadow: var(--shadow-soft);
 }
 
@@ -97,7 +101,7 @@ body {
 .live-on-air-badge {
     background: linear-gradient(135deg, #ef4444, #b91c1c);
     color: #fff;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.72rem;
     font-weight: 900;
@@ -119,35 +123,47 @@ body {
 
 .marquee-title {
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: clamp(0.88rem, 1.5vw, 0.98rem);
     color: var(--text-primary);
 }
 
-.tele-pill {
+.ticker-telemetry-row {
     display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tele-pill {
+    display: inline-flex;
     align-items: center;
     gap: 6px;
     background: rgba(255, 255, 255, 0.05);
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     font-size: 0.82rem;
     color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .tele-pill b {
     color: var(--cinema-gold);
 }
 
+.tele-pill.geo-pill b {
+    color: #6ee7b7;
+}
+
 /* ==========================================================================
    2. HERO BRAND HEADER
    ========================================================================== */
 .hero-header {
-    background: linear-gradient(135deg, rgba(49, 16, 46, 0.8), rgba(15, 23, 42, 0.95));
+    background: linear-gradient(135deg, rgba(49, 16, 46, 0.85), rgba(15, 23, 42, 0.95));
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-xl);
-    padding: 34px 32px;
+    padding: clamp(20px, 3.5vw, 36px);
     position: relative;
     overflow: hidden;
     box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7);
@@ -179,17 +195,17 @@ body {
 .brand-title-group {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
 .multiplex-logo-icon {
-    font-size: 2.8rem;
+    font-size: clamp(2rem, 3.5vw, 2.8rem);
     filter: drop-shadow(0 0 18px var(--cinema-red-glow));
     animation: iconFloat 4s ease-in-out infinite;
 }
 
 .hero-title-text h1 {
-    font-size: 2.4rem;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
     font-weight: 900;
     letter-spacing: -0.5px;
     background: linear-gradient(135deg, #ffffff 30%, #fca5a5 70%, #f59e0b 100%);
@@ -200,22 +216,23 @@ body {
 .ai-engine-pill {
     background: linear-gradient(135deg, #b91c1c, #7f1d1d);
     border: 1px solid rgba(239, 68, 68, 0.5);
-    padding: 8px 18px;
+    padding: 6px 16px;
     border-radius: 30px;
     font-weight: 800;
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     color: #fff;
     box-shadow: 0 4px 18px rgba(239, 68, 68, 0.4);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .hero-subtitle {
     color: var(--text-secondary);
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 1.4vw, 1.08rem);
     max-width: 720px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     position: relative;
     z-index: 1;
 }
@@ -223,7 +240,7 @@ body {
 .hero-chips-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     position: relative;
     z-index: 1;
 }
@@ -233,7 +250,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 6px 14px;
     border-radius: 20px;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #e2e8f0;
     display: inline-flex;
@@ -255,23 +272,35 @@ body {
     display: flex;
     gap: 10px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding: 2px 2px 8px 2px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cinema-red) transparent;
+}
+
+.studio-nav-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.studio-nav-tabs::-webkit-scrollbar-thumb {
+    background: var(--cinema-red);
+    border-radius: 4px;
 }
 
 .studio-tab-btn {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     color: var(--text-secondary);
-    padding: 13px 22px;
+    padding: clamp(10px, 1.5vw, 13px) clamp(16px, 2vw, 22px);
     border-radius: var(--radius-md);
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: clamp(0.85rem, 1.2vw, 0.92rem);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     transition: all 0.2s ease;
     white-space: nowrap;
+    min-height: 44px;
 }
 
 .studio-tab-btn:hover {
@@ -294,25 +323,26 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 12px;
     flex-wrap: wrap;
     background: var(--bg-card);
     backdrop-filter: blur(14px);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
-    padding: 14px 20px;
+    padding: clamp(10px, 1.5vw, 14px) clamp(14px, 2vw, 20px);
 }
 
 .search-input-wrapper {
     flex: 1;
-    min-width: 280px;
+    min-width: min(100%, 280px);
     display: flex;
     align-items: center;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 30px;
-    padding: 8px 18px;
+    padding: 8px 16px;
     gap: 10px;
+    min-height: 44px;
 }
 
 .search-input-wrapper:focus-within {
@@ -346,6 +376,7 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .voice-mic-btn:hover {
@@ -361,14 +392,14 @@ body {
 }
 
 /* ==========================================================================
-   5. CONTROLS BAR (AGE, LANGUAGE, THEME)
+   5. CONTROLS BAR (AGE, LANGUAGE, GENRE)
    ========================================================================== */
 .multiplex-controls-panel {
     background: var(--bg-card);
     backdrop-filter: blur(14px);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-xl);
-    padding: 20px 24px;
+    padding: clamp(16px, 2vw, 22px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -380,17 +411,20 @@ body {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 14px;
+    flex: 1;
 }
 
 .ctrl-item {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: min(100%, 180px);
+    flex: 1;
 }
 
 .ctrl-item label {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -401,12 +435,13 @@ body {
 .ctrl-item input {
     background: rgba(0, 0, 0, 0.45);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 10px 16px;
+    padding: 10px 14px;
     border-radius: var(--radius-md);
     color: #fff;
     font-size: 0.92rem;
     font-family: inherit;
-    min-width: 170px;
+    width: 100%;
+    min-height: 44px;
     transition: all 0.2s ease;
 }
 
@@ -418,85 +453,25 @@ body {
 }
 
 /* ==========================================================================
-   6. STUDIO CARDS & GENERATION PREVIEW
+   6. BUTTONS & ACTIONS
    ========================================================================== */
-.studio-grid-layout {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
-}
-
-.studio-card {
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-lg);
-    padding: 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.studio-card:hover {
-    background: rgba(30, 41, 59, 0.95);
-    border-color: var(--cinema-red);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--cinema-red-glow);
-}
-
-.studio-card.active {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(15, 23, 42, 0.92));
-    border-color: var(--cinema-red);
-    box-shadow: 0 0 25px var(--cinema-red-glow);
-}
-
-.studio-icon-avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-md);
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.75rem;
-    transition: transform 0.3s ease;
-}
-
-.studio-card:hover .studio-icon-avatar {
-    transform: scale(1.12) rotate(4deg);
-    background: rgba(239, 68, 68, 0.22);
-    border-color: var(--cinema-red);
-}
-
-.studio-card h3 {
-    font-size: 1.18rem;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.studio-card p {
-    color: var(--text-secondary);
-    font-size: 0.88rem;
-    line-height: 1.5;
-    flex-grow: 1;
-}
-
 .btn-generate-action {
     background: linear-gradient(135deg, #ef4444, #dc2626);
     color: #fff;
     border: none;
-    padding: 14px 28px;
+    padding: 12px 24px;
     border-radius: var(--radius-md);
     font-weight: 800;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     transition: all 0.25s ease;
     box-shadow: 0 4px 18px var(--cinema-red-glow);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    min-height: 44px;
+    white-space: nowrap;
 }
 
 .btn-generate-action:hover {
@@ -509,12 +484,17 @@ body {
     background: rgba(255, 255, 255, 0.08);
     color: #e2e8f0;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 12px 20px;
+    padding: 10px 18px;
     border-radius: var(--radius-md);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    white-space: nowrap;
 }
 
 .btn-secondary-action:hover {
@@ -530,7 +510,7 @@ body {
     backdrop-filter: blur(16px);
     border: 1px solid var(--border-active);
     border-radius: var(--radius-xl);
-    padding: 32px;
+    padding: clamp(18px, 3vw, 32px);
     box-shadow: var(--shadow-glow);
     animation: fadeIn 0.4s ease;
 }
@@ -540,34 +520,34 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 16px;
-    margin-bottom: 20px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
 }
 
 .script-content-body {
-    font-size: 1.02rem;
+    font-size: clamp(0.92rem, 1.2vw, 1.02rem);
     line-height: 1.75;
     color: #f1f5f9;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: var(--radius-lg);
-    padding: 24px;
+    padding: clamp(14px, 2.5vw, 24px);
     max-height: 600px;
     overflow-y: auto;
 }
 
 .script-content-body h2 {
     color: #f87171;
-    margin: 18px 0 10px;
-    font-size: 1.35rem;
+    margin: 14px 0 8px;
+    font-size: clamp(1.15rem, 2vw, 1.35rem);
 }
 
 .script-content-body h3 {
     color: #fbbf24;
-    margin: 14px 0 8px;
-    font-size: 1.15rem;
+    margin: 12px 0 6px;
+    font-size: clamp(1.02rem, 1.6vw, 1.15rem);
 }
 
 .script-content-body b {
@@ -577,20 +557,21 @@ body {
 .script-content-body blockquote {
     border-left: 4px solid var(--cinema-gold);
     padding-left: 14px;
-    margin: 14px 0;
+    margin: 12px 0;
     color: #cbd5e1;
     font-style: italic;
     background: rgba(255, 255, 255, 0.03);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 /* ==========================================================================
-   8. PROCESSING & FOOTER
+   8. PROCESSING BOX & FOOTER
    ========================================================================== */
 .processing-box {
     background: rgba(15, 23, 42, 0.96);
     border: 1px solid var(--cinema-red);
     border-radius: var(--radius-xl);
-    padding: 32px;
+    padding: clamp(20px, 4vw, 36px);
     text-align: center;
     box-shadow: 0 0 35px var(--cinema-red-glow);
 }
@@ -607,7 +588,7 @@ body {
 
 footer {
     text-align: center;
-    padding: 28px 20px;
+    padding: clamp(18px, 2vw, 28px) 16px;
     color: var(--text-muted);
     font-size: 0.85rem;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -641,9 +622,26 @@ footer {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================================================
+   9. MOBILE & TABLET RESPONSIVENESS OVERRIDES
+   ========================================================================== */
 @media (max-width: 768px) {
-    body { padding: 10px; }
-    .hero-header { padding: 22px 18px; }
-    .hero-title-text h1 { font-size: 1.8rem; }
-    .studio-grid-layout { grid-template-columns: 1fr; }
+    .app-container { gap: 14px; }
+    .hero-header { padding: 20px 16px; }
+    .hero-top-row { flex-direction: column; align-items: flex-start; }
+    .ai-engine-pill { align-self: flex-start; }
+    .marquee-ticker { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .ticker-telemetry-row { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+    .quick-action-bar { flex-direction: column; align-items: stretch; }
+    .search-input-wrapper { width: 100%; }
+    .btn-generate-action { width: 100%; justify-content: center; }
+    .control-selectors-group { flex-direction: column; width: 100%; }
+    .ctrl-item { width: 100%; }
+    .multiplex-controls-panel { flex-direction: column; align-items: stretch; }
+    .script-header-bar { flex-direction: column; align-items: stretch; }
+    .script-header-bar div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+
+@media (max-width: 480px) {
+    .script-header-bar div { grid-template-columns: 1fr; }
 }

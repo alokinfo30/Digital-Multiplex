@@ -19,13 +19,104 @@ document.addEventListener('DOMContentLoaded', function() {
     const copyScriptBtn = document.getElementById('copyScriptBtn');
     const exportScriptBtn = document.getElementById('exportScriptBtn');
     const newPromptBtn = document.getElementById('newPromptBtn');
+    const geoLangBadge = document.getElementById('geoLangBadge');
 
     let currentType = 'movie';
     let currentScriptData = null;
     let isRecording = false;
 
     // ---------------------------------------------------------
-    // 2. STUDIO TAB SWITCHER
+    // 2. LOCATION & BROWSER AUTOMATIC LANGUAGE DETECTION
+    // ---------------------------------------------------------
+    const languageMap = {
+        'hi': { name: 'HINDI (HI) - हिन्दी', locale: 'hi-IN', country: 'India' },
+        'en': { name: 'ENGLISH (EN) - Global', locale: 'en-US', country: 'Global' },
+        'es': { name: 'SPANISH (ES) - Español', locale: 'es-ES', country: 'Spain / Latin America' },
+        'fr': { name: 'FRENCH (FR) - Français', locale: 'fr-FR', country: 'France' },
+        'de': { name: 'GERMAN (DE) - Deutsch', locale: 'de-DE', country: 'Germany' },
+        'pt': { name: 'PORTUGUESE (PT) - Português', locale: 'pt-BR', country: 'Brazil / Portugal' },
+        'ar': { name: 'ARABIC (AR) - العربية', locale: 'ar-SA', country: 'Middle East' },
+        'zh': { name: 'CHINESE (ZH) - 中文', locale: 'zh-CN', country: 'China' },
+        'ja': { name: 'JAPANESE (JA) - 日本語', locale: 'ja-JP', country: 'Japan' },
+        'ko': { name: 'KOREAN (KO) - 한국어', locale: 'ko-KR', country: 'South Korea' },
+        'it': { name: 'ITALIAN (IT) - Italiano', locale: 'it-IT', country: 'Italy' },
+        'ru': { name: 'RUSSIAN (RU) - Русский', locale: 'ru-RU', country: 'Russia' },
+        'nl': { name: 'DUTCH (NL) - Nederlands', locale: 'nl-NL', country: 'Netherlands' },
+        'tr': { name: 'TURKISH (TR) - Türkçe', locale: 'tr-TR', country: 'Turkey' }
+    };
+
+    function detectUserLocationLanguage() {
+        // 1. Check if user already manually selected a language
+        const savedLang = localStorage.getItem('multiplex_user_lang');
+        if (savedLang && languageMap[savedLang]) {
+            return { lang: savedLang, method: 'Saved Preference' };
+        }
+
+        // 2. Detect from browser navigator.language
+        const browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+        for (const code of Object.keys(languageMap)) {
+            if (browserLang.startsWith(code)) {
+                return { lang: code, method: `Browser (${browserLang})` };
+            }
+        }
+
+        // 3. Heuristic detection via User TimeZone
+        try {
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+            if (timeZone.includes('Kolkata') || timeZone.includes('Calcutta') || timeZone.includes('Delhi') || timeZone.includes('India')) {
+                return { lang: 'hi', method: 'Location (India)' };
+            }
+            if (timeZone.includes('Paris')) return { lang: 'fr', method: 'Location (France)' };
+            if (timeZone.includes('Berlin') || timeZone.includes('Vienna')) return { lang: 'de', method: 'Location (Germany)' };
+            if (timeZone.includes('Madrid') || timeZone.includes('Mexico') || timeZone.includes('Bogota') || timeZone.includes('Buenos_Aires')) {
+                return { lang: 'es', method: 'Location (Hispanic Region)' };
+            }
+            if (timeZone.includes('Sao_Paulo') || timeZone.includes('Lisbon')) return { lang: 'pt', method: 'Location (Brazil/Portugal)' };
+            if (timeZone.includes('Tokyo')) return { lang: 'ja', method: 'Location (Japan)' };
+            if (timeZone.includes('Seoul')) return { lang: 'ko', method: 'Location (Korea)' };
+            if (timeZone.includes('Shanghai') || timeZone.includes('Taipei') || timeZone.includes('Hong_Kong')) return { lang: 'zh', method: 'Location (China)' };
+            if (timeZone.includes('Dubai') || timeZone.includes('Riyadh') || timeZone.includes('Cairo')) return { lang: 'ar', method: 'Location (Middle East)' };
+            if (timeZone.includes('Rome')) return { lang: 'it', method: 'Location (Italy)' };
+            if (timeZone.includes('Moscow')) return { lang: 'ru', method: 'Location (Russia)' };
+            if (timeZone.includes('Amsterdam')) return { lang: 'nl', method: 'Location (Netherlands)' };
+            if (timeZone.includes('Istanbul')) return { lang: 'tr', method: 'Location (Turkey)' };
+        } catch (e) {
+            console.log('Timezone detection error:', e);
+        }
+
+        return { lang: 'en', method: 'Default (Global)' };
+    }
+
+    // Populate language selector with all 14 languages
+    if (languageSelect) {
+        languageSelect.innerHTML = '';
+        Object.keys(languageMap).forEach(code => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = languageMap[code].name;
+            languageSelect.appendChild(opt);
+        });
+
+        const detected = detectUserLocationLanguage();
+        languageSelect.value = detected.lang;
+
+        if (geoLangBadge) {
+            geoLangBadge.innerHTML = `📍 Location Auto-Detect: <b>${languageMap[detected.lang].name.split('-')[0].trim()}</b>`;
+        }
+
+        // On User Change
+        languageSelect.addEventListener('change', function() {
+            const selected = this.value;
+            localStorage.setItem('multiplex_user_lang', selected);
+            if (geoLangBadge) {
+                geoLangBadge.innerHTML = `🌐 Language: <b>${languageMap[selected].name.split('-')[0].trim()}</b>`;
+            }
+            generateEntertainmentContent(currentType);
+        });
+    }
+
+    // ---------------------------------------------------------
+    // 3. STUDIO TAB SWITCHER
     // ---------------------------------------------------------
     studioTabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -37,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 3. VOICE MICROPHONE INPUT
+    // 4. VOICE MICROPHONE INPUT
     // ---------------------------------------------------------
     if (voiceMicBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -52,9 +143,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 isRecording = false;
             } else {
                 try {
+                    const currentLang = languageSelect ? languageSelect.value : 'en';
+                    recognition.lang = (languageMap[currentLang] && languageMap[currentLang].locale) || 'en-US';
                     recognition.start();
                     voiceMicBtn.classList.add('recording');
-                    isRecording = true;
                     if (quickThemeInput) quickThemeInput.placeholder = '🎙️ Listening to story idea... Speak now!';
                 } catch (e) {
                     console.error('Speech recognition error:', e);
@@ -86,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 4. RANDOMIZE / SURPRISE ME
+    // 5. RANDOMIZE / SURPRISE ME
     // ---------------------------------------------------------
     const surpriseThemes = [
         "Time traveler accidentally replaces a pop music icon in 1985",
@@ -124,36 +216,92 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 5. INTELLIGENT SCRIPT GENERATION ENGINE
+    // 6. MULTILINGUAL & AGE-APPROPRIATE GENERATION ENGINE
     // ---------------------------------------------------------
     function buildClientSimulation(type, age, lang, genre, userTheme) {
-        const theme = userTheme || 'Epic Cosmic Adventure';
-        const langCode = lang ? lang.toUpperCase() : 'EN';
+        const theme = userTheme || 'Epic Cinematic Journey';
+        const langInfo = languageMap[lang] || languageMap['en'];
+        const langName = langInfo.name.split('-')[0].trim();
 
+        // Multilingual headers & subtitles
         if (type === 'movie') {
-            return `<h2>🎥 Screenplay Preview: "The Vanguard Protocol"</h2>
-<p><b>Genre:</b> ${genre.toUpperCase()} | <b>Age Tier:</b> ${age.toUpperCase()} | <b>Language:</b> ${langCode}</p>
+            if (lang === 'hi') {
+                return `<h2>🎥 विशेष ब्लॉकबस्टर पटकथा: "होराइजन नियॉन की दास्तान"</h2>
+<p><b>शैली:</b> ${genre.toUpperCase()} | <b>आयु वर्ग:</b> ${age.toUpperCase()} | <b>भाषा:</b> ${langName}</p>
+<p><b>विषय (Theme):</b> "${theme}"</p>
+<br/>
+<h3>🌟 कहानी का सार (Logline):</h3>
+<blockquote>2088 के साइबरपंक शहर में, एक संगीतकार को ऐसा ध्वनि संकेत मिलता है जो शहर के केंद्रीय एआई नेटवर्क द्वारा छिपाई गई मानवीय स्मृतियों को अनलॉक कर देता है।</blockquote>
+<br/>
+<h3>🎬 मुख्य पात्र:</h3>
+<p>• <b>कैलन वोस:</b> विद्रोही साउंड इंजीनियर और सिंथ मास्टर।</p>
+<p>• <b>आर्या चेन:</b> मुख्य साइबर अन्वेषक।</p>
+<br/>
+<h3>🎭 दृश्य पटकथा (Scene Script - Act I):</h3>
+<p><b>[स्थान: अंडरग्राउंड साउंड लैब - रात]</b><br/>
+कांच की छत पर बारिश की बूंदें गिर रही हैं। होलोग्राफिक तरंगें चमक रही हैं। कैलन स्लाइडर आगे बढ़ाता है।</p>
+<br/>
+<p><b>कैलन:</b><br/><i>"उन्होंने कहा था कि अतीत मिटा दिया गया है... लेकिन ध्वनियां कभी गायब नहीं होतीं, वे केवल सुने जाने का इंतज़ार करती हैं।"</i></p>`;
+            }
+
+            if (lang === 'es') {
+                return `<h2>🎥 Guión Cinematográfico: "Las Crónicas de Horizon Neo"</h2>
+<p><b>Género:</b> ${genre.toUpperCase()} | <b>Público:</b> ${age.toUpperCase()} | <b>Idioma:</b> ${langName}</p>
+<p><b>Tema:</b> "${theme}"</p>
+<br/>
+<h3>🌟 Sinopsis Principal:</h3>
+<blockquote>En la megaciudad de Neo-Kyoto en 2088, un arquitecto de sonido descubre una señal armónica capaz de desbloquear memorias humanas suprimidas por la red planetaria.</blockquote>
+<br/>
+<h3>🎬 Personajes Principales:</h3>
+<p>• <b>Kaelen Voss:</b> Ingeniero de audio rebelde.</p>
+<p>• <b>Aria Chen:</b> Investigadora de cibernética cuántica.</p>
+<br/>
+<h3>🎭 Escena (Acto I):</h3>
+<p><b>[INT. LABORATORIO SUBTERRÁNEO - NOCHE]</b><br/>
+La lluvia golpea el tragaluz de plexiglás. Las ondas holográficas brillan en carmesí y oro.</p>
+<br/>
+<p><b>KAELEN:</b><br/><i>"Nos dijeron que el pasado fue borrado. Pero las frecuencias no desaparecen... solo esperan ser escuchadas."</i></p>`;
+            }
+
+            return `<h2>🎥 Featured Blockbuster Screenplay: "Chronicles of Horizon Neo"</h2>
+<p><b>Genre:</b> ${genre.toUpperCase()} | <b>Age Tier:</b> ${age.toUpperCase()} | <b>Language:</b> ${langName}</p>
 <p><b>Theme:</b> "${theme}"</p>
 <br/>
 <h3>🌟 Story Logline:</h3>
-<blockquote>When an enigmatic anomaly appears in the outer asteroid belt, a crew of specialized navigators must unite their divergent skills before the planetary defense perimeter collapses.</blockquote>
+<blockquote>In the neon-bathed megacity of Neo-Kyoto in 2088, a rebel sound architect discovers an encrypted harmonic signal capable of unlocking human memories suppressed by the planetary neural network.</blockquote>
 <br/>
-<h3>🎬 Lead Ensemble:</h3>
-<p>• <b>Commander Sean Vance:</b> Veteran deep-space explorer with uncharted navigational telemetry.</p>
-<p>• <b>Dr. Lyra Vega:</b> Quantum astrophysics prodigy who decodes planetary signals.</p>
+<h3>🎬 Key Characters:</h3>
+<p>• <b>Kaelen Voss (Protagonist):</b> Rogue audio engineer and synth master.</p>
+<p>• <b>Aria Chen:</b> Lead cybernetics investigator tracking the broadcast.</p>
 <br/>
-<h3>🎭 Scene Script [ACT I - THE LAUNCH]:</h3>
-<p><b>[EXT. ORBITAL DOCK 9 - DUSK]</b><br/>
-The massive starship engines ignite in a wash of sapphire plasma against the dark curvature of the atmosphere. Sirens chime through the launch bay.</p>
+<h3>🎭 Act I Opening Scene:</h3>
+<p><b>[INT. UNDERGROUND SYNTH LAB - NIGHT]</b><br/>
+Rain drums against the plexiglass skylight. Holographic waveforms pulse in vibrant crimson and gold. Kaelen adjusts the frequency slider.</p>
 <br/>
-<p><b>VANCE:</b><br/><i>"Check thruster synchronization. Once we cross the heliosphere boundary, there is no turning back."</i></p>
-<br/>
-<p><b>VEGA:</b> (calmly checking the console)<br/><i>"Telemetry locked, Commander. All systems green. The anomaly is waiting."</i></p>`;
+<p><b>KAELEN:</b><br/><i>"They told us the past was deleted. But frequencies don't vanish... they just wait to be heard."</i></p>`;
         }
 
         if (type === 'song') {
+            if (lang === 'hi') {
+                return `<h2>🎵 मूल गीत और स्वरलिपि: "सितारों की गूंज"</h2>
+<p><b>शैली:</b> ${genre.toUpperCase()} पॉप / ध्वनिक | <b>ताल (BPM):</b> 124 | <b>भाषा:</b> ${langName}</p>
+<p><b>भाव (Mood):</b> "${theme}"</p>
+<br/>
+<h3>🎸 [पहला अंतरा (Verse 1)]</h3>
+<p>शहर की रोशनियों में ढूंढता हूं तुझे,<br/>
+हर धड़कन में सुनाई देती है तेरी सदा मुझे।<br/>
+सपनों के आसमान में नई सुबह का रंग है,<br/>
+तेरे संग हर सफर जैसे नया उमंग है।</p>
+<br/>
+<h3>✨ [मुखड़ा (Chorus)]</h3>
+<blockquote>हम हैं तारों की तरह जो रात में चमकते हैं,<br/>
+रोशनी की राह पर बेख़ौफ़ आगे बढ़ते हैं।<br/>
+हाथ थाम ले मेरा, मंज़िलें बुलाती हैं,<br/>
+हवाएं भी अब हमारा ही तराना गाती हैं!</blockquote>`;
+            }
+
             return `<h2>🎵 Hit Single & Lyric Master: "Echoes in the Starlight"</h2>
-<p><b>Genre:</b> ${genre.toUpperCase()} Pop / Acoustic | <b>BPM:</b> 124 | <b>Key:</b> G Major | <b>Language:</b> ${langCode}</p>
+<p><b>Genre:</b> ${genre.toUpperCase()} Pop / Acoustic | <b>BPM:</b> 124 | <b>Key:</b> G Major | <b>Language:</b> ${langName}</p>
 <p><b>Vibe:</b> "${theme}"</p>
 <br/>
 <h3>🎸 [VERSE 1]</h3>
@@ -166,58 +314,38 @@ Every melody I write leads me back to you.</p>
 <blockquote>We are echoes in the starlight, burning so bright,<br/>
 Running through the shadows into open light.<br/>
 Hold on to the dream, never let it fade away,<br/>
-We'll be dancing till the break of day!</blockquote>
-<br/>
-<h3>🎶 [BRIDGE]</h3>
-<p>Through the silence of the night (ooh-yeah),<br/>
-Harmonies align and the future ignites.</p>`;
+We'll be dancing till the break of day!</blockquote>`;
         }
 
         if (type === 'radio') {
             return `<h2>📻 Live Radio Broadcast: "Nightwave FM 104.5 — The Pulse"</h2>
-<p><b>Format:</b> Late-Night Interactive Talk & Beats | <b>Audience:</b> ${age.toUpperCase()} | <b>Language:</b> ${langCode}</p>
-<p><b>Show Topic:</b> "${theme}"</p>
+<p><b>Format:</b> Interactive Talk & Hits | <b>Audience:</b> ${age.toUpperCase()} | <b>Language:</b> ${langName}</p>
+<p><b>Topic:</b> "${theme}"</p>
 <br/>
 <h3>🎙️ [ON AIR INTRO]</h3>
-<p><b>[SFX: STATION CHIME JINGLE & SUBTLE LO-FI VINYL CRACKLE]</b></p>
+<p><b>[SFX: STATION CHIME JINGLE & UPBEAT SOUNDBED]</b></p>
 <br/>
 <p><b>RJ MAX:</b><br/>
-<i>"Good evening night owls across the city! You are locked in with RJ Max on Nightwave FM 104.5. Tonight, we're diving deep into our listener spotlight: '${theme}'. We've got caller line 3 lighting up right now. Sarah from Downtown, you're live on the air!"</i></p>
-<br/>
-<p><b>CALLER SARAH:</b><br/>
-<i>"Hey Max! Long-time listener. Just wanted to say that this topic is changing my whole week. Can you drop that new synthwave track right after?"</i></p>
-<br/>
-<p><b>RJ MAX:</b><br/>
-<i>"You got it, Sarah. Crank your speakers up — this next one goes out to every dreamer on the night highway."</i></p>`;
+<i>"Welcome back to Nightwave FM! Broadcasting live in ${langName} across all frequencies. Tonight's listener spotlight: '${theme}'. Caller Line 1 is buzzing — let's take our first listener call!"</i></p>`;
         }
 
         if (type === 'documentary') {
             return `<h2>📽️ Cinematic Docu-Series: "Wonders of the Unseen Realm"</h2>
-<p><b>Category:</b> Nature & Science Exploration | <b>Pacing:</b> Immersive 4K Narration | <b>Language:</b> ${langCode}</p>
+<p><b>Category:</b> Nature & Cosmic Exploration | <b>Language:</b> ${langName} | <b>Pacing:</b> Immersive 4K</p>
 <p><b>Subject:</b> "${theme}"</p>
 <br/>
-<h3>🎙️ Narrator Voiceover [ACT I - THE HIDDEN CORRIDORS]:</h3>
-<p><b>[EXT. ANCIENT CANYON CANOPY - MISTY DAWN]</b><br/>
-Golden light cascades through the primeval canopy. Microscopic ecosystems thrive in symbiotic harmony, invisible to the casual human eye.</p>
-<br/>
-<p><b>NARRATOR:</b><br/>
-<blockquote>"Beneath the tranquil canopy lies an intricate network of biological communication. Millions of fungal hyphae transmit electrical pulses, sharing nutrients across entire ancient forests in a silent symphony of survival."</blockquote></p>
-<br/>
-<p><b>Key Fact:</b> Over 90% of forest tree species rely directly on mycorrhizal fungal networks for drought resilience and nutrient transfer.</p>`;
+<h3>🎙️ Narrator Voiceover:</h3>
+<blockquote>"Beneath the tranquil canopy lies an intricate network of biological communication. Millions of fungal hyphae transmit electrical pulses, sharing nutrients across entire ancient forests in a silent symphony of survival."</blockquote>`;
         }
 
         return `<h2>🎙️ Podcast Master: "The Future Frontier Podcast" (Ep. #84)</h2>
-<p><b>Format:</b> Deep-Dive Discussion & Tech Insights | <b>Audience:</b> ${age.toUpperCase()} | <b>Language:</b> ${langCode}</p>
+<p><b>Format:</b> Deep-Dive Discussion | <b>Language:</b> ${langName} | <b>Audience:</b> ${age.toUpperCase()}</p>
 <p><b>Episode Focus:</b> "${theme}"</p>
 <br/>
-<h3>🎧 Episode Outline & Show Notes:</h3>
-<p>• <b>[00:00 - 04:30]:</b> Welcome & High-Level Breakdown of ${theme}.</p>
-<p>• <b>[04:30 - 18:45]:</b> Guest Interview with Industry Visionaries.</p>
-<p>• <b>[18:45 - 28:00]:</b> Practical Frameworks & Actionable Takeaways for Listeners.</p>
-<br/>
-<h3>🗣️ Host Dialogue Snippet:</h3>
-<p><b>HOST ALEX:</b><br/>
-<i>"Welcome back to The Future Frontier. Today we're exploring why '${theme}' is fundamentally shifting the creative landscape. When you look at how fast generative workflows are evolving, it's clear we're only at day one."</i></p>`;
+<h3>🎧 Episode Outline:</h3>
+<p>• <b>[00:00 - 04:30]:</b> Welcome & Breakdown of ${theme}.</p>
+<p>• <b>[04:30 - 18:45]:</b> Expert Perspectives & Creative Insights.</p>
+<p>• <b>[18:45 - 28:00]:</b> Summary & Listener Q&A.</p>`;
     }
 
     async function generateEntertainmentContent(type) {
@@ -228,7 +356,7 @@ Golden light cascades through the primeval canopy. Microscopic ecosystems thrive
 
         if (loadingDiv) loadingDiv.classList.remove('hidden');
         if (contentDisplay) contentDisplay.classList.add('hidden');
-        if (loadingStatusText) loadingStatusText.textContent = `Assembling specialized ${type.toUpperCase()} AI agent crew...`;
+        if (loadingStatusText) loadingStatusText.textContent = `Assembling specialized ${type.toUpperCase()} AI agent crew in ${languageMap[lang] ? languageMap[lang].name.split('-')[0].trim() : lang}...`;
 
         const payload = {
             type: type,
@@ -259,7 +387,6 @@ Golden light cascades through the primeval canopy. Microscopic ecosystems thrive
             }
             throw new Error('Fallback to local intelligence');
         } catch (e) {
-            // Instant high-fidelity simulation
             await new Promise(r => setTimeout(r, 600));
             const simResult = buildClientSimulation(type, age, lang, genre, customTheme);
             renderScriptResult(simResult, type);
@@ -285,7 +412,6 @@ Golden light cascades through the primeval canopy. Microscopic ecosystems thrive
                 break;
             }
         }
-        // Fallback if timeout
         const sim = buildClientSimulation(currentType, ageGroupSelect.value, languageSelect.value, genreSelect.value, quickThemeInput.value);
         renderScriptResult(sim, currentType);
     }
@@ -305,7 +431,7 @@ Golden light cascades through the primeval canopy. Microscopic ecosystems thrive
     }
 
     // ---------------------------------------------------------
-    // 6. AUDIO TEXT-TO-SPEECH SYNTHESIS
+    // 7. MULTILINGUAL AUDIO TEXT-TO-SPEECH SYNTHESIS
     // ---------------------------------------------------------
     if (speakScriptBtn && 'speechSynthesis' in window) {
         speakScriptBtn.addEventListener('click', function() {
@@ -313,6 +439,8 @@ Golden light cascades through the primeval canopy. Microscopic ecosystems thrive
                 const text = scriptBody.innerText;
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
+                const currentLang = languageSelect ? languageSelect.value : 'en';
+                utterance.lang = (languageMap[currentLang] && languageMap[currentLang].locale) || 'en-US';
                 utterance.rate = 1.0;
                 utterance.pitch = 1.0;
                 window.speechSynthesis.speak(utterance);
@@ -323,7 +451,7 @@ Golden light cascades through the primeval canopy. Microscopic ecosystems thrive
     }
 
     // ---------------------------------------------------------
-    // 7. COPY & EXPORT SCRIPT
+    // 8. COPY & EXPORT SCRIPT
     // ---------------------------------------------------------
     if (copyScriptBtn) {
         copyScriptBtn.addEventListener('click', function() {
