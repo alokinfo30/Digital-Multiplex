@@ -10,27 +10,63 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickGenerateBtn = document.getElementById('quickGenerateBtn');
     const randomizeBtn = document.getElementById('randomizeBtn');
     const voiceMicBtn = document.getElementById('voiceMicBtn');
-    const sfxJingleBtn = document.getElementById('sfxJingleBtn');
-    const loadingDiv = document.getElementById('loading');
-    const loadingStatusText = document.getElementById('loadingStatusText');
+    const dimLightsBtn = document.getElementById('dimLightsBtn');
+    const spatialAudioBtn = document.getElementById('spatialAudioBtn');
+    
+    // Hub Containers
+    const virtualTheaterHub = document.getElementById('virtualTheaterHub');
     const contentDisplay = document.getElementById('contentDisplay');
     const seatSelectorHub = document.getElementById('seatSelectorHub');
     const concessionsHub = document.getElementById('concessionsHub');
     const triviaHub = document.getElementById('triviaHub');
+    const loadingDiv = document.getElementById('loading');
+    const loadingStatusText = document.getElementById('loadingStatusText');
+    const geoLangBadge = document.getElementById('geoLangBadge');
+
+    // Virtual Screen & Canvas
+    const canvas = document.getElementById('cinemaMovieCanvas');
+    const ctx = canvas ? canvas.getContext('2d') : null;
+    const screenAmbientGlow = document.getElementById('screenAmbientGlow');
+    const floatingEmojiContainer = document.getElementById('floatingEmojiContainer');
+    const moviePlayPauseBtn = document.getElementById('moviePlayPauseBtn');
+    const movieMuteBtn = document.getElementById('movieMuteBtn');
+    const movieTrailerSwitchBtn = document.getElementById('movieTrailerSwitchBtn');
+    const fullscreenTheaterBtn = document.getElementById('fullscreenTheaterBtn');
+    const moviePlayingTitle = document.getElementById('moviePlayingTitle');
+    const imaxScreenWrapper = document.getElementById('imaxScreenWrapper');
+
+    // Watch Party & Chat
+    const chatMessagesBox = document.getElementById('chatMessagesBox');
+    const chatInput = document.getElementById('chatInput');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+    const privateRoomCodeInput = document.getElementById('privateRoomCodeInput');
+    const copyInviteLinkBtn = document.getElementById('copyInviteLinkBtn');
+    const joinPrivateRoomBtn = document.getElementById('joinPrivateRoomBtn');
+    const avatarNameInput = document.getElementById('avatarNameInput');
+    const updateAvatarBtn = document.getElementById('updateAvatarBtn');
+    const auditoriumSeatsRow = document.getElementById('auditoriumSeatsRow');
+    const hallPillBtns = document.querySelectorAll('.hall-pill-btn');
+
+    // Script Display Elements
     const scriptBody = document.getElementById('scriptBody');
     const scriptTitleHeading = document.getElementById('scriptTitleHeading');
     const speakScriptBtn = document.getElementById('speakScriptBtn');
     const copyScriptBtn = document.getElementById('copyScriptBtn');
     const exportScriptBtn = document.getElementById('exportScriptBtn');
     const newPromptBtn = document.getElementById('newPromptBtn');
-    const geoLangBadge = document.getElementById('geoLangBadge');
 
-    let currentType = 'movie';
+    let currentType = 'virtual_theater';
     let currentScriptData = null;
     let isRecording = false;
+    let isMoviePlaying = true;
+    let isMuted = false;
+    let isLightsDimmed = false;
+    let activeFeatureFilmIdx = 0;
+    let userAvatarName = 'Alex 🍿';
+    let userSeatIdx = 3;
 
     // ---------------------------------------------------------
-    // 2. WEB AUDIO API SYNTHESIZER (ZERO ASSET DEPENDENCY)
+    // 2. WEB AUDIO API SYNTHESIZER (SURROUND SOUND & SFX)
     // ---------------------------------------------------------
     let audioCtx = null;
     function getAudioContext() {
@@ -43,42 +79,59 @@ document.addEventListener('DOMContentLoaded', function() {
         return audioCtx;
     }
 
-    function playChordChime() {
+    // Spatial Dolby Atmos Opening Swell
+    function playSpatialAtmosSwell() {
         try {
-            const ctx = getAudioContext();
-            const now = ctx.currentTime;
-            const freqs = [261.63, 329.63, 392.00, 523.25]; // C Major chord (C4, E4, G4, C5)
+            const ctxA = getAudioContext();
+            const now = ctxA.currentTime;
+            
+            // Sub Bass Sweep
+            const oscSub = ctxA.createOscillator();
+            const gainSub = ctxA.createGain();
+            oscSub.type = 'sine';
+            oscSub.frequency.setValueAtTime(40, now);
+            oscSub.frequency.exponentialRampToValueAtTime(110, now + 1.5);
+            gainSub.gain.setValueAtTime(0.001, now);
+            gainSub.gain.linearRampToValueAtTime(0.3, now + 0.8);
+            gainSub.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+            oscSub.connect(gainSub);
+            gainSub.connect(ctxA.destination);
+            oscSub.start(now);
+            oscSub.stop(now + 2.6);
+
+            // Harmonic Chime Swell
+            const freqs = [329.63, 392.00, 493.88, 659.25, 987.77]; // E minor 9th shimmer
             freqs.forEach((freq, idx) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                const osc = ctxA.createOscillator();
+                const gain = ctxA.createGain();
                 osc.type = 'triangle';
                 osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.001, now + idx * 0.08);
-                gain.gain.exponentialRampToValueAtTime(0.2, now + idx * 0.08 + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+                gain.gain.setValueAtTime(0.001, now + 0.3 + idx * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.18, now + 0.5 + idx * 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.0);
                 osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(now + idx * 0.08);
-                osc.stop(now + 1.8);
+                gain.connect(ctxA.destination);
+                osc.start(now + 0.3 + idx * 0.08);
+                osc.stop(now + 3.2);
             });
         } catch (e) {
-            console.log('Web Audio Chord Error:', e);
+            console.log('Web Audio Atmos Error:', e);
         }
     }
 
     function playNfcTurnstileChime() {
         try {
-            const ctx = getAudioContext();
-            const now = ctx.currentTime;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+            const ctxA = getAudioContext();
+            const now = ctxA.currentTime;
+            const osc = ctxA.createOscillator();
+            const gain = ctxA.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(587.33, now); // D5
-            osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.15); // A5
+            osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.15);
             gain.gain.setValueAtTime(0.25, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
             osc.connect(gain);
-            gain.connect(ctx.destination);
+            gain.connect(ctxA.destination);
             osc.start(now);
             osc.stop(now + 0.55);
         } catch (e) {
@@ -86,8 +139,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    if (sfxJingleBtn) {
-        sfxJingleBtn.addEventListener('click', playChordChime);
+    if (spatialAudioBtn) {
+        spatialAudioBtn.addEventListener('click', function() {
+            playSpatialAtmosSwell();
+            spatialAudioBtn.textContent = '🔊 Dolby Atmos 3D Playing';
+            setTimeout(() => { spatialAudioBtn.textContent = '🔊 Spatial Atmos SFX'; }, 3000);
+        });
+    }
+
+    if (dimLightsBtn) {
+        dimLightsBtn.addEventListener('click', function() {
+            isLightsDimmed = !isLightsDimmed;
+            document.body.classList.toggle('cinema-lights-dimmed', isLightsDimmed);
+            dimLightsBtn.textContent = isLightsDimmed ? '💡 Lights On' : '💡 Dim Lights';
+        });
     }
 
     // ---------------------------------------------------------
@@ -178,7 +243,317 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 4. STUDIO & HUB TAB SWITCHER (8 HUBS)
+    // 4. VIRTUAL IMAX SCREEN 60FPS CINEMATIC CANVAS ENGINE
+    // ---------------------------------------------------------
+    const featureFilms = [
+        {
+            title: 'Horizon Neo: The Cybernetic Odyssey',
+            tag: 'IMAX 3D Laser • 4K Dolby Vision',
+            sub: 'In 2088, the frequencies of the past awaken the stars...',
+            colorA: '#ef4444',
+            colorB: '#f59e0b',
+            theme: 'cyberpunk'
+        },
+        {
+            title: 'Cosmic Voyage: Uncharted Galaxies',
+            tag: 'IMAX 70mm Film • Deep Space Odyssey',
+            sub: 'Journey beyond the heliosphere boundary into the unknown.',
+            colorA: '#38bdf8',
+            colorB: '#8b5cf6',
+            theme: 'space'
+        },
+        {
+            title: 'Starlight Melodies & Neon Nights',
+            tag: 'Dolby Atmos Live Acoustic Premiere',
+            sub: 'Harmonies that resonate through time and space.',
+            colorA: '#ec4899',
+            colorB: '#a855f7',
+            theme: 'music'
+        }
+    ];
+
+    let animFrame = 0;
+    const stars = Array.from({ length: 80 }, () => ({
+        x: Math.random() * 960,
+        y: Math.random() * 540,
+        radius: Math.random() * 2.2 + 0.6,
+        speed: Math.random() * 1.5 + 0.4
+    }));
+
+    function drawCinemaCanvas() {
+        if (!ctx) return;
+        animFrame++;
+
+        const film = featureFilms[activeFeatureFilmIdx];
+
+        // Background space gradient
+        const bgGrad = ctx.createLinearGradient(0, 0, 960, 540);
+        bgGrad.addColorStop(0, '#040714');
+        bgGrad.addColorStop(0.5, '#0a1026');
+        bgGrad.addColorStop(1, '#02040a');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 960, 540);
+
+        if (isMoviePlaying) {
+            // Starfield simulation
+            ctx.fillStyle = '#ffffff';
+            stars.forEach(s => {
+                s.x -= s.speed;
+                if (s.x < 0) s.x = 960;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Nebula glow
+            const nebGrad = ctx.createRadialGradient(480 + Math.sin(animFrame * 0.02) * 80, 270 + Math.cos(animFrame * 0.02) * 40, 30, 480, 270, 380);
+            nebGrad.addColorStop(0, film.colorA + '44');
+            nebGrad.addColorStop(0.5, film.colorB + '22');
+            nebGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = nebGrad;
+            ctx.fillRect(0, 0, 960, 540);
+
+            // Horizon Neon Gridlines (Perspective)
+            ctx.strokeStyle = film.colorA + '33';
+            ctx.lineWidth = 1.5;
+            const horizonY = 360;
+            for (let x = -200; x <= 1160; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(480, horizonY - 40);
+                ctx.lineTo(x + Math.sin(animFrame * 0.01) * 30, 540);
+                ctx.stroke();
+            }
+
+            // Central Holographic Title Emblem
+            ctx.save();
+            ctx.textAlign = 'center';
+            
+            // Outer Glow Halo
+            ctx.shadowColor = film.colorA;
+            ctx.shadowBlur = 24;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 36px Inter, sans-serif';
+            ctx.fillText(film.title, 480, 240);
+
+            // Subtitle Tag
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = film.colorB;
+            ctx.font = '700 16px Inter, sans-serif';
+            ctx.fillText(`⚡ ${film.tag}`, 480, 280);
+
+            // Dialogue / Subtitle overlay
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(160, 460, 640, 50);
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '500 15px Inter, sans-serif';
+            ctx.fillText(`💬 ${film.sub}`, 480, 492);
+
+            ctx.restore();
+        } else {
+            // Paused Overlay
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+            ctx.fillRect(0, 0, 960, 540);
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '900 48px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⏸️ SCREENING PAUSED', 480, 270);
+            ctx.font = '600 18px Inter, sans-serif';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillText('Press Play to resume synchronized playback with your suite', 480, 310);
+        }
+
+        // Ambient Ambilight Glow sync
+        if (animFrame % 60 === 0 && screenAmbientGlow) {
+            screenAmbientGlow.style.background = `radial-gradient(ellipse at top, ${film.colorA}40 0%, ${film.colorB}20 45%, transparent 75%)`;
+        }
+
+        requestAnimationFrame(drawCinemaCanvas);
+    }
+
+    if (canvas) {
+        drawCinemaCanvas();
+    }
+
+    // Movie Controls
+    if (moviePlayPauseBtn) {
+        moviePlayPauseBtn.addEventListener('click', function() {
+            isMoviePlaying = !isMoviePlaying;
+            moviePlayPauseBtn.textContent = isMoviePlaying ? '⏸️ Pause' : '▶️ Resume Film';
+            broadcastChatMessage('System', isMoviePlaying ? '▶️ Resumed screening for all viewers' : '⏸️ Paused screening');
+        });
+    }
+
+    if (movieTrailerSwitchBtn) {
+        movieTrailerSwitchBtn.addEventListener('click', function() {
+            activeFeatureFilmIdx = (activeFeatureFilmIdx + 1) % featureFilms.length;
+            const f = featureFilms[activeFeatureFilmIdx];
+            if (moviePlayingTitle) {
+                moviePlayingTitle.textContent = `NOW SCREENING: "${f.title}" (${f.tag})`;
+            }
+            playSpatialAtmosSwell();
+            broadcastChatMessage('System', `🎬 Feature switched to: "${f.title}"`);
+        });
+    }
+
+    if (movieMuteBtn) {
+        movieMuteBtn.addEventListener('click', function() {
+            isMuted = !isMuted;
+            movieMuteBtn.textContent = isMuted ? '🔇 Sound Muted' : '🔊 Sound On';
+        });
+    }
+
+    if (fullscreenTheaterBtn && imaxScreenWrapper) {
+        fullscreenTheaterBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                imaxScreenWrapper.requestFullscreen().catch(err => alert(`Fullscreen error: ${err.message}`));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    }
+
+    // ---------------------------------------------------------
+    // 5. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
+    // ---------------------------------------------------------
+    let viewersList = [
+        { name: 'Emma ❤️', avatar: '👩', seat: 'Seat 1', isFriend: true },
+        { name: 'David 👓', avatar: '👨‍💼', seat: 'Seat 2', isFriend: true },
+        { name: 'Sophia ✨', avatar: '👩‍🎨', seat: 'Seat 3', isFriend: true },
+        { name: 'Alex 🍿 (You)', avatar: '🧑', seat: 'Seat 4', isUser: true },
+        { name: 'Dad 👓', avatar: '👨', seat: 'Seat 5', isFriend: true },
+        { name: 'Mom 👩‍🍳', avatar: '👩', seat: 'Seat 6', isFriend: true },
+        { name: 'Lucas 🚀', avatar: '🧑‍🚀', seat: 'Seat 7', isFriend: false },
+        { name: 'Mia 🎧', avatar: '👧', seat: 'Seat 8', isFriend: false }
+    ];
+
+    function renderAuditoriumSeats() {
+        if (!auditoriumSeatsRow) return;
+        auditoriumSeatsRow.innerHTML = '';
+
+        viewersList.forEach((v, idx) => {
+            const seatDiv = document.createElement('div');
+            seatDiv.className = 'virtual-viewer-seat';
+            if (v.isUser) seatDiv.classList.add('active-user');
+            if (v.isFriend) seatDiv.classList.add('friend-seat');
+
+            seatDiv.innerHTML = `
+                <div class="viewer-avatar-bubble" title="${v.name}">${v.avatar}</div>
+                <div class="theater-chair-graphic"></div>
+                <span class="viewer-name-tag">${v.name}</span>
+            `;
+
+            seatDiv.addEventListener('click', function() {
+                // Change User Seat to this position
+                viewersList.forEach(item => { item.isUser = false; });
+                viewersList[idx].isUser = true;
+                viewersList[idx].name = `${userAvatarName} (You)`;
+                renderAuditoriumSeats();
+                broadcastChatMessage('System', `💺 You moved to ${v.seat}`);
+            });
+
+            auditoriumSeatsRow.appendChild(seatDiv);
+        });
+    }
+
+    renderAuditoriumSeats();
+
+    if (updateAvatarBtn) {
+        updateAvatarBtn.addEventListener('click', function() {
+            const newName = (avatarNameInput.value || 'Alex 🍿').trim();
+            userAvatarName = newName;
+            const mySeat = viewersList.find(v => v.isUser);
+            if (mySeat) {
+                mySeat.name = `${userAvatarName} (You)`;
+                renderAuditoriumSeats();
+            }
+            broadcastChatMessage('System', `👤 Your avatar was updated to "${userAvatarName}"`);
+        });
+    }
+
+    // ---------------------------------------------------------
+    // 6. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
+    // ---------------------------------------------------------
+    function broadcastChatMessage(sender, text, isMe = false) {
+        if (!chatMessagesBox) return;
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble' + (isMe ? ' my-msg' : '');
+        bubble.innerHTML = `<b>${sender}:</b> ${text}`;
+        chatMessagesBox.appendChild(bubble);
+        chatMessagesBox.scrollTop = chatMessagesBox.scrollHeight;
+    }
+
+    if (sendChatBtn && chatInput) {
+        function handleSendChat() {
+            const text = chatInput.value.trim();
+            if (text) {
+                broadcastChatMessage(`${userAvatarName} (You)`, text, true);
+                chatInput.value = '';
+            }
+        }
+        sendChatBtn.addEventListener('click', handleSendChat);
+        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSendChat(); });
+    }
+
+    // Floating Reaction Emojis
+    function triggerFloatingEmoji(emoji) {
+        if (!floatingEmojiContainer) return;
+        const span = document.createElement('span');
+        span.className = 'floating-reaction-emoji';
+        span.textContent = emoji;
+        span.style.left = `${15 + Math.random() * 70}%`;
+        floatingEmojiContainer.appendChild(span);
+        setTimeout(() => span.remove(), 3200);
+    }
+
+    document.querySelectorAll('.reaction-emoji-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const emoji = this.dataset.emoji;
+            triggerFloatingEmoji(emoji);
+            broadcastChatMessage(`${userAvatarName}`, `reacted ${emoji}`, true);
+        });
+    });
+
+    if (copyInviteLinkBtn) {
+        copyInviteLinkBtn.addEventListener('click', function() {
+            const roomCode = privateRoomCodeInput.value || 'FAMILY-2026';
+            const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+            navigator.clipboard.writeText(inviteUrl);
+            copyInviteLinkBtn.textContent = '✅ Invite Link Copied!';
+            setTimeout(() => { copyInviteLinkBtn.textContent = '🔗 Copy Invite Link'; }, 2200);
+        });
+    }
+
+    if (joinPrivateRoomBtn) {
+        joinPrivateRoomBtn.addEventListener('click', function() {
+            const code = (privateRoomCodeInput.value || 'FAMILY-2026').trim().toUpperCase();
+            playSpatialAtmosSwell();
+            alert(`👑 Entered Private Watch Party Suite: #${code}! Sync stream connected with loved ones.`);
+            const privateHall = document.getElementById('privateHallPill');
+            if (privateHall) {
+                privateHall.textContent = `👑 Private Suite (#${code})`;
+                hallPillBtns.forEach(b => b.classList.remove('active'));
+                privateHall.classList.add('active');
+            }
+            broadcastChatMessage('Suite Host', `Welcome to Private Suite #${code}! The screening is fully synchronized.`);
+        });
+    }
+
+    hallPillBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            hallPillBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const hall = this.dataset.hall;
+            if (hall === 'private') {
+                alert('👑 Switched to Private Family Suite. Invite friends to watch along!');
+            } else {
+                alert(`🎬 Switched to Auditorium ${this.textContent}`);
+            }
+        });
+    });
+
+    // ---------------------------------------------------------
+    // 7. STUDIO & HUB TAB SWITCHER (8 HUBS)
     // ---------------------------------------------------------
     function showHub(tabType) {
         currentType = tabType;
@@ -187,12 +562,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeTab) activeTab.classList.add('active');
 
         // Hide all hubs
+        if (virtualTheaterHub) virtualTheaterHub.classList.add('hidden');
         if (contentDisplay) contentDisplay.classList.add('hidden');
         if (seatSelectorHub) seatSelectorHub.classList.add('hidden');
         if (concessionsHub) concessionsHub.classList.add('hidden');
         if (triviaHub) triviaHub.classList.add('hidden');
 
-        if (tabType === 'tickets') {
+        if (tabType === 'virtual_theater') {
+            if (virtualTheaterHub) virtualTheaterHub.classList.remove('hidden');
+        } else if (tabType === 'tickets') {
             if (seatSelectorHub) seatSelectorHub.classList.remove('hidden');
             renderSeatMatrix();
         } else if (tabType === 'concessions') {
@@ -212,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 5. VOICE MICROPHONE INPUT
+    // 8. VOICE MICROPHONE INPUT
     // ---------------------------------------------------------
     if (voiceMicBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -247,24 +625,31 @@ document.addEventListener('DOMContentLoaded', function() {
             isRecording = false;
             if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
+            } else {
+                // If in virtual theater, switch film title
+                if (moviePlayingTitle) {
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${transcript}" (Custom Feature)`;
+                }
+                playSpatialAtmosSwell();
+                broadcastChatMessage('System', `🎬 Now screening custom feature: "${transcript}"`);
             }
         };
 
         recognition.onerror = function() {
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            if (quickThemeInput) quickThemeInput.placeholder = "Enter custom premise...";
+            if (quickThemeInput) quickThemeInput.placeholder = "Enter movie premise to screen...";
         };
 
         recognition.onend = function() {
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            if (quickThemeInput) quickThemeInput.placeholder = "Enter custom premise...";
+            if (quickThemeInput) quickThemeInput.placeholder = "Enter movie premise to screen...";
         };
     }
 
     // ---------------------------------------------------------
-    // 6. RANDOMIZE / SURPRISE ME
+    // 9. RANDOMIZE / SURPRISE ME
     // ---------------------------------------------------------
     const surpriseThemes = [
         "Time traveler accidentally replaces a pop music icon in 1985",
@@ -283,13 +668,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if (genreSelect) genreSelect.value = genres[Math.floor(Math.random() * genres.length)];
             if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
+            } else {
+                if (moviePlayingTitle) {
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${randomTheme}"`;
+                }
+                playSpatialAtmosSwell();
             }
         });
     }
 
     if (quickGenerateBtn) {
         quickGenerateBtn.addEventListener('click', function() {
-            if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
+            const customPremise = quickThemeInput ? quickThemeInput.value.trim() : '';
+            if (currentType === 'virtual_theater' && customPremise) {
+                if (moviePlayingTitle) {
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${customPremise}" (4K HDR)`;
+                }
+                playSpatialAtmosSwell();
+                broadcastChatMessage('System', `🎬 Screening custom feature: "${customPremise}"`);
+            } else if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
             } else {
                 showHub('movie');
@@ -308,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 7. SCRIPT GENERATION SIMULATION & BACKEND SYNC
+    // 10. SCRIPT GENERATION & SIMULATION ENGINE
     // ---------------------------------------------------------
     function buildClientSimulation(type, age, lang, genre, userTheme) {
         const theme = userTheme || 'Epic Galactic Odyssey';
@@ -354,24 +751,6 @@ Rain drums against the plexiglass skylight. Holographic waveforms pulse in vibra
         }
 
         if (type === 'song') {
-            if (lang === 'hi') {
-                return `<h2>🎵 मूल गीत और स्वरलिपि: "सितारों की गूंज"</h2>
-<p><b>शैली:</b> ${genre.toUpperCase()} पॉप / ध्वनिक | <b>ताल (BPM):</b> 124 | <b>भाषा:</b> ${langName}</p>
-<p><b>भाव:</b> "${theme}"</p>
-<br/>
-<h3>🎸 [पहला अंतरा (Verse 1)]</h3>
-<p>शहर की रोशनियों में ढूंढता हूं तुझे,<br/>
-हर धड़कन में सुनाई देती है तेरी सदा मुझे।<br/>
-सपनों के आसमान में नई सुबह का रंग है,<br/>
-तेरे संग हर सफर जैसे नया उमंग है।</p>
-<br/>
-<h3>✨ [मुखड़ा (Chorus)]</h3>
-<blockquote>हम हैं तारों की तरह जो रात में चमकते हैं,<br/>
-रोशनी की राह पर बेख़ौफ़ आगे बढ़ते हैं।<br/>
-हाथ थाम ले मेरा, मंज़िलें बुलाती हैं,<br/>
-हवाएं भी अब हमारा ही तराना गाती हैं!</blockquote>`;
-            }
-
             return `<h2>🎵 Hit Single & Lyric Master: "Echoes in the Starlight"</h2>
 <p><b>Genre:</b> ${genre.toUpperCase()} Pop / Acoustic | <b>BPM:</b> 124 | <b>Key:</b> G Major | <b>Language:</b> ${langName}</p>
 <p><b>Vibe:</b> "${theme}"</p>
@@ -398,7 +777,7 @@ We'll be dancing till the break of day!</blockquote>`;
 <p><b>[SFX: STATION CHIME JINGLE & SUBTLE VINYL CRACKLE]</b></p>
 <br/>
 <p><b>RJ MAX:</b><br/>
-<i>"Good evening night owls! You are locked in with RJ Max on Nightwave FM 104.5 in ${langName}. Tonight, we're diving deep into our listener spotlight: '${theme}'. Caller Line 3 is live right now!"</i></p>`;
+<i>"Good evening night owls! You are locked in with RJ Max on Nightwave FM 104.5 in ${langName}. Tonight's listener spotlight: '${theme}'. Caller Line 3 is live right now!"</i></p>`;
         }
 
         if (type === 'documentary') {
@@ -417,7 +796,8 @@ We'll be dancing till the break of day!</blockquote>`;
 <h3>🎧 Episode Outline:</h3>
 <p>• <b>[00:00 - 04:30]:</b> Welcome & Breakdown of ${theme}.</p>
 <p>• <b>[04:30 - 18:45]:</b> Expert Perspectives & Creative Frameworks.</p>
-<p>• <b>[18:45 - 28:00]:</b> Summary & Actionable Takeaways.</p>`;
+<p>• <b>[18:45 - 28:00]:</b> Summary & Actionable Takeaways.</p>
+`;
     }
 
     async function generateEntertainmentContent(type) {
@@ -473,7 +853,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 8. TEXT-TO-SPEECH NARRATION (TTS)
+    // 11. TEXT-TO-SPEECH NARRATION (TTS)
     // ---------------------------------------------------------
     if (speakScriptBtn && 'speechSynthesis' in window) {
         speakScriptBtn.addEventListener('click', function() {
@@ -517,7 +897,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 9. VIP SEAT MATRIX CONTROLLER (MODULE 6)
+    // 12. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
     // ---------------------------------------------------------
     let selectedSeats = ['C3', 'C4'];
     function renderSeatMatrix() {
@@ -542,9 +922,7 @@ We'll be dancing till the break of day!</blockquote>`;
                 btn.textContent = i;
                 btn.dataset.seat = seatId;
 
-                if (selectedSeats.includes(seatId)) {
-                    btn.classList.add('selected');
-                }
+                if (selectedSeats.includes(seatId)) btn.classList.add('selected');
 
                 btn.addEventListener('click', function() {
                     if (selectedSeats.includes(seatId)) {
@@ -578,17 +956,14 @@ We'll be dancing till the break of day!</blockquote>`;
     const confirmSeatsBtn = document.getElementById('confirmSeatsBtn');
     if (confirmSeatsBtn) {
         confirmSeatsBtn.addEventListener('click', function() {
-            playChordChime();
+            playSpatialAtmosSwell();
             alert(`🎟️ VIP Tickets Confirmed for Seats: ${selectedSeats.join(', ')}! Pass ready on your digital wallet.`);
         });
     }
 
-    // ---------------------------------------------------------
-    // 10. CONCESSIONS & SNACK BAR CONTROLLER (MODULE 7)
-    // ---------------------------------------------------------
+    // Concessions
     let cart = [];
     let discountRate = 0.0;
-
     document.querySelectorAll('.add-snack-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const name = this.dataset.name;
@@ -625,7 +1000,7 @@ We'll be dancing till the break of day!</blockquote>`;
 
         list.innerHTML = '';
         let subtotal = 0;
-        cart.forEach((item, idx) => {
+        cart.forEach((item) => {
             subtotal += item.price;
             const li = document.createElement('li');
             li.style.display = 'flex';
@@ -639,9 +1014,7 @@ We'll be dancing till the break of day!</blockquote>`;
         totalText.textContent = `$${total.toFixed(2)}` + (discountRate > 0 ? ' (20% OFF)' : '');
     }
 
-    // ---------------------------------------------------------
-    // 11. CINEPHILE TRIVIA ARENA CONTROLLER (MODULE 8)
-    // ---------------------------------------------------------
+    // Trivia
     let triviaPoints = 450;
     const triviaQuestions = [
         {
@@ -683,7 +1056,7 @@ We'll be dancing till the break of day!</blockquote>`;
                 if (oIdx === qData.ans) {
                     btn.classList.add('correct');
                     triviaPoints += 50;
-                    playChordChime();
+                    playSpatialAtmosSwell();
                     if (feedback) feedback.textContent = '🎉 Correct Answer! +50 Multiplex Stars awarded!';
                 } else {
                     btn.classList.add('incorrect');
