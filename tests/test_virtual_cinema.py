@@ -21,6 +21,9 @@ class TestVirtualCinema(unittest.TestCase):
 
         self.assertIn("4DX Cinema", html)
         self.assertIn("cinemaMovieCanvas", html)
+        self.assertIn("cinemaYoutubePlayer", html)
+        self.assertIn("cinemaVideoPlayer", html)
+        self.assertIn("screenVideoContainer", html)
         self.assertIn("virtualTheaterHub", html)
         self.assertIn("Private Family", html)
         self.assertIn("auditoriumSeatsRow", html)

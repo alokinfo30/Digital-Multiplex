@@ -254,11 +254,21 @@
                     <span class="hud-4dx-pill" id="hud4dxTemp">🌡️ Temp: 18°C Cyber-Hall</span>
                 </div>
 
-                <!-- VIRTUAL IMAX CURVED SCREEN WITH DYNAMIC AMBILIGHT CANVAS -->
+                <!-- VIRTUAL IMAX CURVED SCREEN WITH REAL PLAYABLE VIDEO & 4DX DYNAMIC AMBILIGHT -->
                 <div class="virtual-imax-screen-wrapper" id="imaxScreenWrapper">
                     <div class="screen-fog-overlay" id="screenFogOverlay"></div>
                     <div class="floating-emoji-container" id="floatingEmojiContainer"></div>
-                    <canvas id="cinemaMovieCanvas" class="virtual-screen-canvas" width="960" height="540"></canvas>
+                    
+                    <div class="screen-video-container" id="screenVideoContainer">
+                        <!-- Real Playable YouTube 4DX Stream Player -->
+                        <iframe id="cinemaYoutubePlayer" class="cinema-stream-frame" src="https://www.youtube.com/embed/Way9Dexny3w?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1" title="Digital Multiplex 4DX IMAX Player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        
+                        <!-- Direct HTML5 Video Player for MP4 / WebM / HLS -->
+                        <video id="cinemaVideoPlayer" class="cinema-stream-video hidden" playsinline controls></video>
+                        
+                        <!-- Fallback Cyberpunk Hologram Canvas Visualizer -->
+                        <canvas id="cinemaMovieCanvas" class="virtual-screen-canvas hidden" width="960" height="540"></canvas>
+                    </div>
                     
                     <!-- Player Bar -->
                     <div class="theater-player-controls">
@@ -266,9 +276,10 @@
                             <button type="button" id="moviePlayPauseBtn" class="player-btn">⏸️ Pause</button>
                             <button type="button" id="movieMuteBtn" class="player-btn">🔊 Sound On</button>
                             <button type="button" id="movieTrailerSwitchBtn" class="player-btn">🎬 Switch Feature Film</button>
+                            <button type="button" id="screenModeToggleBtn" class="player-btn" style="background:rgba(168,85,247,0.25); border:1px solid #c084fc;">🔄 Mode: Video Stream</button>
                         </div>
                         <div style="color:#f59e0b; font-size:0.85rem; font-weight:700;" id="moviePlayingTitle">
-                            NOW SCREENING: "Horizon Neo: The 4DX Cybernetic Odyssey" (4K HDR 4DX)
+                            NOW SCREENING IN 4DX: "Dune: Part Two (Official 4DX Laser Trailer)"
                         </div>
                         <div class="player-btn-group">
                             <button type="button" id="fullscreenTheaterBtn" class="player-btn">⛶ Fullscreen</button>

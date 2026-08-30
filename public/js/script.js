@@ -42,7 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshRecsBtn = document.getElementById('refreshRecsBtn');
     const surpriseRecBtn = document.getElementById('surpriseRecBtn');
 
-    // Virtual Screen & Canvas
+    // Virtual Screen, Real Playable Video Players & Canvas
+    const cinemaYoutubePlayer = document.getElementById('cinemaYoutubePlayer');
+    const cinemaVideoPlayer = document.getElementById('cinemaVideoPlayer');
     const canvas = document.getElementById('cinemaMovieCanvas');
     const ctx = canvas ? canvas.getContext('2d') : null;
     const screenAmbientGlow = document.getElementById('screenAmbientGlow');
@@ -50,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const moviePlayPauseBtn = document.getElementById('moviePlayPauseBtn');
     const movieMuteBtn = document.getElementById('movieMuteBtn');
     const movieTrailerSwitchBtn = document.getElementById('movieTrailerSwitchBtn');
+    const screenModeToggleBtn = document.getElementById('screenModeToggleBtn');
     const fullscreenTheaterBtn = document.getElementById('fullscreenTheaterBtn');
     const moviePlayingTitle = document.getElementById('moviePlayingTitle');
     const imaxScreenWrapper = document.getElementById('imaxScreenWrapper');
@@ -98,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let userAvatarName = 'Alex 🍿';
     let detectedCountry = 'Global';
     let activeRegion = 'all';
+    let currentScreenMode = 'video'; // 'video' or 'canvas'
 
     // ---------------------------------------------------------
     // 2. WEB AUDIO API SYNTHESIZER (SURROUND SOUND & 4DX SFX)
@@ -435,61 +439,155 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 5. UNIVERSAL 4DX MOVIE CONVERTER ENGINE
+    // 5. SMART YOUTUBE PARSER & REAL PLAYABLE MOVIE ENGINE
     // ---------------------------------------------------------
-    function convertAnyMovieTo4DX(movieTitleOrUrl, profile = 'turbo') {
-        const title = (movieTitleOrUrl || 'Featured 4DX Masterpiece').trim();
-        
-        let profileTag = '4DX Turbo Haptics (Max Motion)';
-        let colorA = '#ef4444';
-        let colorB = '#f59e0b';
+    function extractYouTubeVideoId(input) {
+        if (!input) return null;
+        const str = input.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+            return str;
+        }
+        const shortMatch = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+        if (shortMatch) return shortMatch[1];
+        const watchMatch = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+        if (watchMatch) return watchMatch[1];
+        const embedMatch = str.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/);
+        if (embedMatch) return embedMatch[1];
+        const shortsMatch = str.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
+        if (shortsMatch) return shortsMatch[1];
+        return null;
+    }
 
-        if (profile === 'action') {
-            profileTag = '4DX Action & Combat (Explosion Jolt + Strobes)';
-            colorA = '#dc2626';
-            colorB = '#38bdf8';
-        } else if (profile === 'nature') {
-            profileTag = '4DX Nature & Ocean (Mist + Wind Gusts)';
-            colorA = '#10b981';
-            colorB = '#06b6d4';
-        } else if (profile === 'space') {
-            profileTag = '4DX Deep Space IMAX (Sub-Bass Transducer)';
-            colorA = '#8b5cf6';
-            colorB = '#38bdf8';
+    const movieTrailerDictionary = {
+        'dune': { id: 'Way9Dexny3w', title: 'Dune: Part Two (Official 4DX Laser Trailer)', colorA: '#f59e0b', colorB: '#d97706', theme: 'action' },
+        'avatar': { id: 'd9MyW72ELq0', title: 'Avatar: The Way of Water (4DX 3D Official Trailer)', colorA: '#0284c7', colorB: '#10b981', theme: 'nature' },
+        'rrr': { id: 'GY4BgdUSpbE', title: 'RRR: Rise Roar Revolt (Official 4DX Action Trailer)', colorA: '#ef4444', colorB: '#f59e0b', theme: 'action' },
+        'oppenheimer': { id: 'uYPbbksJxIg', title: 'Oppenheimer (IMAX 70mm 4DX Trailer)', colorA: '#ea580c', colorB: '#fbbf24', theme: 'turbo' },
+        'kalki': { id: 'kQDd1AhGIHk', title: 'Kalki 2898 AD (Official Cyberpunk 4DX Trailer)', colorA: '#06b6d4', colorB: '#f59e0b', theme: 'space' },
+        'jawan': { id: 'MWOlnZSnXWE', title: 'Jawan (Official High-Octane 4DX Prevue)', colorA: '#b91c1c', colorB: '#f59e0b', theme: 'action' },
+        'demon slayer': { id: 'bFwdl2PPPXM', title: 'Demon Slayer: Infinity Castle (Official 4DX Trailer)', colorA: '#ef4444', colorB: '#a855f7', theme: 'turbo' },
+        'spirited away': { id: 'ByXuk9QqQkk', title: 'Spirited Away (Studio Ghibli 4DX Remaster)', colorA: '#10b981', colorB: '#38bdf8', theme: 'nature' },
+        'interstellar': { id: 'zSWdZVtXT7E', title: 'Interstellar (IMAX 70mm Space 4DX Trailer)', colorA: '#38bdf8', colorB: '#8b5cf6', theme: 'space' },
+        'inception': { id: 'YoHD9XEInc0', title: 'Inception (Mind-Bending 4DX Trailer)', colorA: '#6366f1', colorB: '#ef4444', theme: 'turbo' },
+        'matrix': { id: 'vKQi3bBA1y8', title: 'The Matrix (Bullet-Time 4DX 4K Trailer)', colorA: '#10b981', colorB: '#059669', theme: 'action' },
+        'parasite': { id: '5xH0RZE7t4E', title: 'Parasite (Oscar Winner Official Trailer)', colorA: '#475569', colorB: '#06b6d4', theme: 'action' },
+        'train to busan': { id: 'pyWuMm044BM', title: 'Train to Busan (4DX Express Motion Trailer)', colorA: '#b91c1c', colorB: '#38bdf8', theme: 'turbo' },
+        'anatomy of a fall': { id: 'fTrsp5fYPcA', title: 'Anatomy of a Fall (Palme d\'Or Official Trailer)', colorA: '#38bdf8', colorB: '#f8fafc', theme: 'nature' },
+        'dark': { id: 'rrwycJ08PSA', title: 'Dark (Netflix Original 4DX Chrono Trailer)', colorA: '#f59e0b', colorB: '#3b82f6', theme: 'space' },
+        'pan\'s labyrinth': { id: 'EqyiRrftP-c', title: 'Pan\'s Labyrinth (Fairy Tale Noir 4DX Trailer)', colorA: '#15803d', colorB: '#b45309', theme: 'nature' },
+        'theeb': { id: 'mIId_nCg2Gk', title: 'Theeb: Wolf of the Desert (Official 4DX Trailer)', colorA: '#d97706', colorB: '#b45309', theme: 'nature' },
+        'top gun': { id: 'giXco2jaZ_4', title: 'Top Gun: Maverick (4DX G-Force Extreme Trailer)', colorA: '#0284c7', colorB: '#f59e0b', theme: 'action' },
+        'avengers': { id: 'TcMBFSGVi1c', title: 'Avengers: Endgame (Marvel IMAX 3D Trailer)', colorA: '#a855f7', colorB: '#ef4444', theme: 'turbo' },
+        'spider-man': { id: 'cqGjhVJWtEg', title: 'Spider-Man: Across the Spider-Verse (4DX Trailer)', colorA: '#ec4899', colorB: '#38bdf8', theme: 'action' },
+        'batman': { id: 'EXeTwQWrcwY', title: 'The Batman (DC IMAX 4DX Laser Trailer)', colorA: '#dc2626', colorB: '#000000', theme: 'action' },
+        'gladiator': { id: '4rgYUipGJNo', title: 'Gladiator II (Official 4DX Colosseum Trailer)', colorA: '#b45309', colorB: '#ef4444', theme: 'action' },
+        'deadpool': { id: '73_1biulkYk', title: 'Deadpool & Wolverine (Official 4DX Trailer)', colorA: '#ef4444', colorB: '#f59e0b', theme: 'turbo' },
+        'godzilla': { id: 'lV1OOlGwExM', title: 'Godzilla x Kong: The New Empire (4DX Rumble)', colorA: '#ec4899', colorB: '#06b6d4', theme: 'turbo' },
+        'baahubali': { id: 'sOEg_YN553E', title: 'Baahubali 2: The Conclusion (Official Trailer)', colorA: '#f59e0b', colorB: '#b91c1c', theme: 'action' },
+        'kgf': { id: 'JKa05nyUmuQ', title: 'K.G.F: Chapter 2 (Official Action Trailer)', colorA: '#d97706', colorB: '#ef4444', theme: 'turbo' },
+        'pushpa': { id: '1kVK0MZlbI4', title: 'Pushpa 2: The Rule (Official 4DX Trailer)', colorA: '#dc2626', colorB: '#f59e0b', theme: 'action' },
+        'stree': { id: 'KVn5j3jTo5g', title: 'Stree 2 (Official Horror-Comedy 4DX Trailer)', colorA: '#a855f7', colorB: '#ef4444', theme: 'action' },
+        'pathaan': { id: 'vqu4z34wENw', title: 'Pathaan (YRF Spy Universe 4DX Trailer)', colorA: '#b91c1c', colorB: '#0284c7', theme: 'action' },
+        'salaar': { id: '4GPvYMKtrtI', title: 'Salaar: Part 1 - Ceasefire (Official 4DX Trailer)', colorA: '#334155', colorB: '#ef4444', theme: 'action' },
+        'quantum': { id: 'BnnbP7pCIvQ', title: 'Quantum Convergence: 2099 (4DX Cyberpunk Trailer)', colorA: '#ef4444', colorB: '#f59e0b', theme: 'turbo' },
+        'apex': { id: 'giXco2jaZ_4', title: 'Apex Velocity: Nitro Drift 4DX', colorA: '#38bdf8', colorB: '#ef4444', theme: 'action' },
+        'cipher': { id: 'YoHD9XEInc0', title: 'The Midnight Cipher (4DX Noir)', colorA: '#8b5cf6', colorB: '#ec4899', theme: 'space' },
+        'starlight': { id: 'fJ9rUzIMcZQ', title: 'Starlight Serenade Across Time', colorA: '#ec4899', colorB: '#f59e0b', theme: 'nature' },
+        'biosphere': { id: 'd9MyW72ELq0', title: 'Realm of the Ancient Biosphere (8K 4DX Doc)', colorA: '#10b981', colorB: '#06b6d4', theme: 'nature' },
+        'singularity': { id: 'zSWdZVtXT7E', title: 'Singularity: The Synthetic Dawn (4DX IMAX)', colorA: '#06b6d4', colorB: '#a855f7', theme: 'space' }
+    };
+
+    function playMovieOrVideo(queryOrUrl, titleOverride, profile = 'turbo') {
+        const input = (queryOrUrl || '').trim();
+        if (!input) return;
+
+        let targetTitle = titleOverride || input;
+        let videoType = 'youtube';
+        let srcUrl = '';
+
+        // 1. Direct Video File (.mp4, .webm, .ogg, .m3u8)
+        if (/\.(mp4|webm|ogg|m3u8)(\?.*)?$/i.test(input)) {
+            videoType = 'html5';
+            srcUrl = input;
+        } else {
+            // 2. YouTube Link or Direct ID
+            const ytId = extractYouTubeVideoId(input);
+            if (ytId) {
+                videoType = 'youtube';
+                srcUrl = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
+            } else {
+                // 3. Search Name in Dictionary
+                const low = input.toLowerCase();
+                const matchedKey = Object.keys(movieTrailerDictionary).find(k => low.includes(k));
+                if (matchedKey) {
+                    const match = movieTrailerDictionary[matchedKey];
+                    targetTitle = match.title;
+                    srcUrl = `https://www.youtube.com/embed/${match.id}?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
+                    if (!profile) profile = match.theme;
+                } else {
+                    // 4. Dynamic YouTube Search Embed
+                    srcUrl = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(input + ' official trailer')}&autoplay=1&enablejsapi=1`;
+                }
+            }
         }
 
-        featureFilms[activeFeatureFilmIdx] = {
-            title: title,
-            tag: `⚡ Converted to 4DX • ${profileTag}`,
-            sub: `Real-time audio-visual frequency analysis active for "${title}" with full haptic seat synchronization.`,
-            colorA: colorA,
-            colorB: colorB,
-            theme: profile
-        };
+        // Switch to Video Player
+        currentScreenMode = 'video';
+        if (screenModeToggleBtn) {
+            screenModeToggleBtn.textContent = '🔄 Mode: Video Stream';
+        }
+
+        if (videoType === 'html5') {
+            if (cinemaYoutubePlayer) cinemaYoutubePlayer.classList.add('hidden');
+            if (canvas) canvas.classList.add('hidden');
+            if (cinemaVideoPlayer) {
+                cinemaVideoPlayer.classList.remove('hidden');
+                cinemaVideoPlayer.src = srcUrl;
+                cinemaVideoPlayer.play().catch(e => console.log('Video play error:', e));
+            }
+        } else {
+            if (cinemaVideoPlayer) {
+                cinemaVideoPlayer.pause();
+                cinemaVideoPlayer.classList.add('hidden');
+            }
+            if (canvas) canvas.classList.add('hidden');
+            if (cinemaYoutubePlayer) {
+                cinemaYoutubePlayer.classList.remove('hidden');
+                cinemaYoutubePlayer.src = srcUrl;
+            }
+        }
 
         if (moviePlayingTitle) {
-            moviePlayingTitle.textContent = `NOW SCREENING IN 4DX: "${title}" (${profileTag})`;
+            moviePlayingTitle.textContent = `NOW SCREENING IN 4DX: "${targetTitle}" (4DX Laser 4K)`;
         }
 
         if (converterActiveStatusText) {
-            converterActiveStatusText.textContent = `✅ Successfully Converted "${title}" to 4DX! Live Haptic Stream Synced.`;
+            converterActiveStatusText.textContent = `✅ Live Screening "${targetTitle}" in 4DX! Real-Time Haptics & Audio Synced.`;
         }
 
         playSpatialAtmosSwell();
         trigger4dxSeatRumble();
         trigger4dxAirBlast();
 
-        broadcastChatMessage('4DX Synthesizer', `⚡ Converted "${title}" into live 4DX experience for all viewers!`);
+        broadcastChatMessage('4DX Cinema', `🎬 Now Playing: "${targetTitle}" in 4DX! Synced for all suite viewers.`);
 
         showHub('virtual_theater');
-        window.scrollTo({ top: 120, behavior: 'smooth' });
+        const screenElem = document.getElementById('imaxScreenWrapper');
+        if (screenElem) {
+            screenElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function convertAnyMovieTo4DX(movieTitleOrUrl, profile = 'turbo') {
+        const title = (movieTitleOrUrl || 'Dune: Part Two (Official 4DX Laser Trailer)').trim();
+        playMovieOrVideo(title, title, profile);
     }
 
     if (executeConvertBtn) {
         executeConvertBtn.addEventListener('click', function() {
             const inputVal = converterMovieInput ? converterMovieInput.value : '';
             const profile = converterProfileSelect ? converterProfileSelect.value : 'turbo';
-            convertAnyMovieTo4DX(inputVal || 'Interstellar 4DX Laser', profile);
+            convertAnyMovieTo4DX(inputVal || 'Avatar: The Way of Water', profile);
         });
     }
 
@@ -731,7 +829,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Screen button
             const screenBtn = card.querySelector('.screen-global-btn');
             screenBtn.addEventListener('click', function() {
-                convertAnyMovieTo4DX(m.title, m.region === 'india' ? 'action' : (m.region === 'japan' ? 'turbo' : 'space'));
+                playMovieOrVideo(m.title, m.title, m.region === 'india' ? 'action' : (m.region === 'japan' ? 'turbo' : 'space'));
             });
 
             // Book button
@@ -769,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---------------------------------------------------------
     function getShareInviteData() {
         const roomCode = (privateRoomCodeInput && privateRoomCodeInput.value) || 'FAMILY-2026';
-        const filmTitle = (featureFilms[activeFeatureFilmIdx] && featureFilms[activeFeatureFilmIdx].title) || 'Horizon Neo: 4DX Laser';
+        const filmTitle = (moviePlayingTitle && moviePlayingTitle.textContent.replace('NOW SCREENING IN 4DX:', '').trim()) || 'Dune: Part Two (4DX Laser)';
         const url = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
         const text = `🎬 Join our private VIP 4DX Cinema Suite to watch "${filmTitle}" together in real-time with tactile 4DX haptics and live chat! 🍿💥 Room Code: #${roomCode} 👉 ${url}`;
         return { roomCode, filmTitle, url, text };
@@ -964,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const screenBtn = card.querySelector('.screen-rec-btn');
             screenBtn.addEventListener('click', function() {
-                convertAnyMovieTo4DX(rec.title, rec.genre === 'nature' ? 'nature' : 'turbo');
+                playMovieOrVideo(rec.title, rec.title, rec.genre === 'nature' ? 'nature' : 'turbo');
             });
 
             const bookBtn = card.querySelector('.book-rec-btn');
@@ -1012,28 +1110,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---------------------------------------------------------
     const featureFilms = [
         {
-            title: 'Horizon Neo: The 4DX Cybernetic Odyssey',
-            tag: 'IMAX 3D Laser • 4DX Extreme Haptics',
-            sub: 'In 2088, the frequencies of the past awaken the stars...',
-            colorA: '#ef4444',
-            colorB: '#f59e0b',
-            theme: 'cyberpunk'
+            title: 'Dune: Part Two (Official 4DX Laser Trailer)',
+            ytId: 'Way9Dexny3w',
+            tag: 'IMAX 3D Laser • Sandstorm Wind & Shai-Hulud Rumble',
+            sub: 'Paul Atreides unites with the Fremen with seismic sandworm riding vibrations.',
+            colorA: '#f59e0b',
+            colorB: '#d97706',
+            theme: 'action'
         },
         {
-            title: 'Cosmic Voyage: Uncharted Galaxies 4DX',
-            tag: 'IMAX 70mm Film • Deep Space Nebula',
-            sub: 'Journey beyond the heliosphere boundary into the unknown.',
+            title: 'Avatar: The Way of Water (4DX 3D Official Trailer)',
+            ytId: 'd9MyW72ELq0',
+            tag: 'IMAX 3D Laser • 4DX Mist & Ocean Immersion',
+            sub: 'Jake Sully and Neytiri explore the majestic oceanic reefs of Pandora.',
+            colorA: '#0284c7',
+            colorB: '#10b981',
+            theme: 'nature'
+        },
+        {
+            title: 'RRR: Rise Roar Revolt (Official 4DX Action Trailer)',
+            ytId: 'GY4BgdUSpbE',
+            tag: 'Fire vs Water • 4DX Maximum Motion',
+            sub: 'Two legendary revolutionaries fight with heart-stopping stunts and fire bursts.',
+            colorA: '#ef4444',
+            colorB: '#f59e0b',
+            theme: 'action'
+        },
+        {
+            title: 'Oppenheimer (IMAX 70mm 4DX Trailer)',
+            ytId: 'uYPbbksJxIg',
+            tag: 'Quantum Physics • Shockwave Seat Jolt',
+            sub: 'The dramatic story of J. Robert Oppenheimer and the Trinity nuclear test.',
+            colorA: '#ea580c',
+            colorB: '#fbbf24',
+            theme: 'turbo'
+        },
+        {
+            title: 'Interstellar (IMAX 70mm Space 4DX Trailer)',
+            ytId: 'zSWdZVtXT7E',
+            tag: 'Deep Space Gravity • Sub-Bass Transducer',
+            sub: 'A team of explorers travel through a wormhole in space to ensure humanity’s survival.',
             colorA: '#38bdf8',
             colorB: '#8b5cf6',
             theme: 'space'
         },
         {
-            title: 'Starlight Melodies & Neon Nights 4DX',
-            tag: 'Dolby Atmos Live Acoustic Premiere',
-            sub: 'Harmonies that resonate through time and space.',
-            colorA: '#ec4899',
+            title: 'Demon Slayer: Infinity Castle (Official 4DX Trailer)',
+            ytId: 'bFwdl2PPPXM',
+            tag: 'Flame & Water Breathing • Lightning Strobe FX',
+            sub: 'Tanjiro and the Hashira clash in an ultimate battle inside the Infinity Castle.',
+            colorA: '#ef4444',
             colorB: '#a855f7',
-            theme: 'music'
+            theme: 'turbo'
         }
     ];
 
@@ -1046,10 +1174,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }));
 
     function drawCinemaCanvas() {
-        if (!ctx) return;
+        if (!ctx || currentScreenMode !== 'canvas') return;
         animFrame++;
 
-        const film = featureFilms[activeFeatureFilmIdx];
+        const film = featureFilms[activeFeatureFilmIdx] || featureFilms[0];
 
         const bgGrad = ctx.createLinearGradient(0, 0, 960, 540);
         bgGrad.addColorStop(0, '#040714');
@@ -1141,10 +1269,29 @@ document.addEventListener('DOMContentLoaded', function() {
         drawCinemaCanvas();
     }
 
+    // ---------------------------------------------------------
+    // 10. THEATER PLAYER CONTROLS (PLAY/PAUSE/SWITCH/MUTE)
+    // ---------------------------------------------------------
     if (moviePlayPauseBtn) {
         moviePlayPauseBtn.addEventListener('click', function() {
             isMoviePlaying = !isMoviePlaying;
             moviePlayPauseBtn.textContent = isMoviePlaying ? '⏸️ Pause' : '▶️ Resume Film';
+
+            // Control YouTube iframe
+            if (cinemaYoutubePlayer && !cinemaYoutubePlayer.classList.contains('hidden')) {
+                const command = isMoviePlaying ? 'playVideo' : 'pauseVideo';
+                cinemaYoutubePlayer.contentWindow.postMessage(JSON.stringify({ event: 'command', func: command }), '*');
+            }
+
+            // Control HTML5 video
+            if (cinemaVideoPlayer && !cinemaVideoPlayer.classList.contains('hidden')) {
+                if (isMoviePlaying) {
+                    cinemaVideoPlayer.play().catch(e => console.log(e));
+                } else {
+                    cinemaVideoPlayer.pause();
+                }
+            }
+
             broadcastChatMessage('System', isMoviePlaying ? '▶️ Resumed 4DX screening for all viewers' : '⏸️ Paused screening');
         });
     }
@@ -1153,12 +1300,25 @@ document.addEventListener('DOMContentLoaded', function() {
         movieTrailerSwitchBtn.addEventListener('click', function() {
             activeFeatureFilmIdx = (activeFeatureFilmIdx + 1) % featureFilms.length;
             const f = featureFilms[activeFeatureFilmIdx];
-            if (moviePlayingTitle) {
-                moviePlayingTitle.textContent = `NOW SCREENING: "${f.title}" (${f.tag})`;
+            playMovieOrVideo(f.ytId, f.title, f.theme);
+        });
+    }
+
+    if (screenModeToggleBtn) {
+        screenModeToggleBtn.addEventListener('click', function() {
+            if (currentScreenMode === 'video') {
+                currentScreenMode = 'canvas';
+                if (cinemaYoutubePlayer) cinemaYoutubePlayer.classList.add('hidden');
+                if (cinemaVideoPlayer) cinemaVideoPlayer.classList.add('hidden');
+                if (canvas) canvas.classList.remove('hidden');
+                screenModeToggleBtn.textContent = '🔄 Mode: Cyberpunk Visualizer';
+                drawCinemaCanvas();
+            } else {
+                currentScreenMode = 'video';
+                if (canvas) canvas.classList.add('hidden');
+                if (cinemaYoutubePlayer) cinemaYoutubePlayer.classList.remove('hidden');
+                screenModeToggleBtn.textContent = '🔄 Mode: Video Stream';
             }
-            playSpatialAtmosSwell();
-            trigger4dxSeatRumble();
-            broadcastChatMessage('System', `🎬 Feature switched to: "${f.title}"`);
         });
     }
 
@@ -1166,6 +1326,15 @@ document.addEventListener('DOMContentLoaded', function() {
         movieMuteBtn.addEventListener('click', function() {
             isMuted = !isMuted;
             movieMuteBtn.textContent = isMuted ? '🔇 Sound Muted' : '🔊 Sound On';
+
+            if (cinemaYoutubePlayer && !cinemaYoutubePlayer.classList.contains('hidden')) {
+                const command = isMuted ? 'mute' : 'unMute';
+                cinemaYoutubePlayer.contentWindow.postMessage(JSON.stringify({ event: 'command', func: command }), '*');
+            }
+
+            if (cinemaVideoPlayer && !cinemaVideoPlayer.classList.contains('hidden')) {
+                cinemaVideoPlayer.muted = isMuted;
+            }
         });
     }
 
@@ -1180,7 +1349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 10. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
+    // 11. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
     // ---------------------------------------------------------
     let viewersList = [
         { name: 'Emma ❤️', avatar: '👩', seat: 'Seat 1', isFriend: true },
@@ -1238,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 11. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
+    // 12. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
     // ---------------------------------------------------------
     function broadcastChatMessage(sender, text, isMe = false) {
         if (!chatMessagesBox) return;
@@ -1320,7 +1489,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 12. STUDIO & HUB TAB SWITCHER (CONVERTER, GLOBAL CATALOG & OTHERS)
+    // 13. STUDIO & HUB TAB SWITCHER (CONVERTER, GLOBAL CATALOG & OTHERS)
     // ---------------------------------------------------------
     function showHub(tabType) {
         currentType = tabType;
@@ -1378,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 13. QUICK PROMPT & MIC INPUT
+    // 14. QUICK PROMPT & MIC INPUT (REAL VIDEO CONVERSION)
     // ---------------------------------------------------------
     if (quickGenerateBtn) {
         quickGenerateBtn.addEventListener('click', function() {
@@ -1437,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 14. SCRIPT GENERATION & SIMULATION ENGINE
+    // 15. SCRIPT GENERATION & SIMULATION ENGINE
     // ---------------------------------------------------------
     function buildClientSimulation(type, age, lang, genre, userTheme) {
         const theme = userTheme || 'Epic Galactic Odyssey';
@@ -1584,7 +1753,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 15. TEXT-TO-SPEECH NARRATION (TTS) & EXPORT
+    // 16. TEXT-TO-SPEECH NARRATION (TTS) & EXPORT
     // ---------------------------------------------------------
     if (speakScriptBtn && 'speechSynthesis' in window) {
         speakScriptBtn.addEventListener('click', function() {
@@ -1628,7 +1797,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 16. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
+    // 17. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
     // ---------------------------------------------------------
     let selectedSeats = ['C3', 'C4'];
     function renderSeatMatrix() {
