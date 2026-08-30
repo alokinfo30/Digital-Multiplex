@@ -1,0 +1,33 @@
+# robots.txt for Digital Multiplex AI Entertainment Platform
+# https://github.com/alokinfo30/Digital-Multiplex
+
+User-agent: *
+Allow: /
+Allow: /api/
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /sitemap.xml
+
+# AI Bots and Search Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://alokinfo30.github.io/Digital-Multiplex/sitemap.xml

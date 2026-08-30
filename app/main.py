@@ -107,13 +107,15 @@ def index():
 
 
 @main_bp.route("/health")
+@main_bp.route("/api/health")
 def health_check():
-    """Health check endpoint for Render."""
-    secret_header = request.headers.get("X-Render-Health-Check-Key")
+    """Health check endpoint for Render, Netlify, and uptime monitors."""
     expected_secret = os.getenv("RENDER_HEALTH_CHECK_KEY")
-    if not expected_secret or secret_header != expected_secret:
-        return jsonify({"status": "forbidden"}), 403
-    return jsonify({"status": "healthy"}), 200
+    if expected_secret:
+        secret_header = request.headers.get("X-Render-Health-Check-Key")
+        if secret_header != expected_secret:
+            return jsonify({"status": "forbidden"}), 403
+    return jsonify({"status": "healthy", "service": "Digital Multiplex"}), 200
 
 
 @main_bp.route("/api/generate", methods=["POST"])

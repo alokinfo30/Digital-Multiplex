@@ -1,0 +1,22 @@
+# Digital Multiplex
+> Autonomous AI Entertainment Studio — Powered by CrewAI, OpenRouter & Web Speech AI
+
+## Overview
+Digital Multiplex is a dynamic entertainment generation platform. It orchestrates specialized AI agents using CrewAI and OpenRouter multi-model fallback to curate and generate age-appropriate blockbusters, song lyrics with chords, live radio talk shows, nature/science documentaries, and podcast show notes across 10+ international languages.
+
+- **Author & Architect:** Alok Srivastava (https://github.com/alokinfo30)
+- **Repository:** https://github.com/alokinfo30/Digital-Multiplex
+- **License:** MIT License
+- **Frameworks:** Python 3.11, CrewAI, Flask, OpenRouter, TMDB API, Web Speech API
+
+## 5 Specialized Entertainment Studios
+1. **Cinema Studio**: Hollywood & global screenplay, logline, cast ensemble, and scene scripts.
+2. **Music Studio**: Full song lyrics (verses, chorus, bridge) with BPM, musical key, and chords.
+3. **Radio & Talk Show**: Realistic RJ banter, listener phone-in interactions, and station audio cues.
+4. **Documentary Vault**: Cinematic nature, cosmic, historical, and technology narration scripts with voiceover cues.
+5. **Podcast Studio**: Co-host discussion outlines, key frameworks, and episode show notes.
+
+## Personalization & Age Tiers
+- **Baby / Kids**: Whimsical, educational, gentle vocabulary.
+- **Young Adult / Gen Z**: Dynamic, futuristic, fast-paced dialogue and themes.
+- **Senior / Cinephile**: Rich narrative depth, historical resonance, and classical pacing.

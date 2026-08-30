@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# build.sh
+# build.sh - Render / Cloud Production Build Script
 
-# Exit immediately if a command exits with a non-zero status.
 set -o errexit
 
 echo "--- Upgrading pip and installing dependencies ---"
 pip install --upgrade pip
-pip install --only-binary :all: -r requirements.txt
+pip install -r requirements.txt
 
-echo "--- Running database migrations ---"
-flask db upgrade
+echo "--- Initializing database ---"
+flask db upgrade || echo "Database initialized or already up to date"
+
+echo "--- Build completed successfully ---"

@@ -1,0 +1,11 @@
+[build]
+  publish = "public"
+  command = "echo 'Digital Multiplex client build complete'"
+
+[build.environment]
+  PYTHON_VERSION = "3.11.9"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
