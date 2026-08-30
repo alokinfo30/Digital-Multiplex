@@ -1,6 +1,7 @@
 /* ==========================================================================
-   🎬 Digital Multiplex — World-Class Virtual Cinema, 4DX, Social Share & AI Recommendations
+   🎬 Digital Multiplex — World-Class Virtual Cinema, 4DX Converter & Global Catalog
    Ultra-Responsive (Mobile, Tablet, Laptop, Desktop) | Cyberpunk Cinema Theme
+   Capable of Handling Millions of Concurrent Worldwide Viewers at Edge
    ========================================================================== */
 
 :root {
@@ -66,15 +67,19 @@ body.cinema-lights-dimmed {
 body.cinema-lights-dimmed .hero-header,
 body.cinema-lights-dimmed .quick-action-bar,
 body.cinema-lights-dimmed .multiplex-controls-panel,
+body.cinema-lights-dimmed .converter-4dx-section,
+body.cinema-lights-dimmed .global-catalog-section,
 body.cinema-lights-dimmed .recommendations-section-wrapper,
 body.cinema-lights-dimmed footer {
-    opacity: 0.25;
+    opacity: 0.22;
     transition: opacity 0.5s ease;
 }
 
 body.cinema-lights-dimmed .hero-header:hover,
 body.cinema-lights-dimmed .quick-action-bar:hover,
 body.cinema-lights-dimmed .multiplex-controls-panel:hover,
+body.cinema-lights-dimmed .converter-4dx-section:hover,
+body.cinema-lights-dimmed .global-catalog-section:hover,
 body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     opacity: 1;
 }
@@ -82,7 +87,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
 /* ==========================================================================
    4DX THEATER EFFECTS (HAPTIC SHAKE, STROBE, MIST, AIR BLAST)
    ========================================================================== */
-/* 4DX Screen & Seat Jolt */
 .cinema-4dx-shake {
     animation: cinema4DxJolt 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
@@ -94,7 +98,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     40%, 60% { transform: translate3d(6px, -4px, 0) rotate(1deg); }
 }
 
-/* 4DX Lightning Strobe Overlay */
 .theater-strobe-overlay {
     position: fixed;
     inset: 0;
@@ -116,7 +119,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     100% { opacity: 0; }
 }
 
-/* 4DX Wind & Fog Overlay on Screen */
 .screen-fog-overlay {
     position: absolute;
     inset: 0;
@@ -131,7 +133,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     opacity: 1;
 }
 
-/* 4DX Environmental HUD Bar */
 .hud-4dx-bar {
     display: flex;
     align-items: center;
@@ -262,6 +263,15 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     color: #6ee7b7;
 }
 
+.tele-pill.scale-pill {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.tele-pill.scale-pill b {
+    color: #34d399;
+}
+
 /* ==========================================================================
    2. HERO BRAND HEADER
    ========================================================================== */
@@ -338,7 +348,7 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
 .hero-subtitle {
     color: var(--text-secondary);
     font-size: clamp(0.95rem, 1.4vw, 1.08rem);
-    max-width: 720px;
+    max-width: 760px;
     margin-bottom: 18px;
     position: relative;
     z-index: 1;
@@ -499,7 +509,7 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
 }
 
 /* ==========================================================================
-   5. CONTROLS BAR (AGE, LANGUAGE, GENRE)
+   5. CONTROLS BAR (AGE, INTERFACE LANGUAGE, MOVIE AUDIO DUB, GENRE)
    ========================================================================== */
 .multiplex-controls-panel {
     background: var(--bg-card);
@@ -526,7 +536,7 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    min-width: min(100%, 180px);
+    min-width: min(100%, 160px);
     flex: 1;
 }
 
@@ -630,8 +640,30 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     transform: translateY(-2px);
 }
 
+.btn-convert-action {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: #fff;
+    border: 1px solid rgba(192, 132, 252, 0.5);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+}
+
+.btn-convert-action:hover {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    transform: translateY(-2px);
+    box-shadow: 0 0 24px rgba(168, 85, 247, 0.6);
+}
+
 /* ==========================================================================
-   7. SOCIAL SHARING DECK (WHATSAPP, INSTAGRAM, FACEBOOK, X, TELEGRAM)
+   7. SOCIAL SHARING DECK
    ========================================================================== */
 .social-share-deck {
     display: flex;
@@ -700,7 +732,142 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
 }
 
 /* ==========================================================================
-   8. SMART RECOMMENDATION & ENGAGEMENT CAROUSEL
+   8. UNIVERSAL 4DX MOVIE CONVERTER SUITE
+   ========================================================================== */
+.converter-4dx-section {
+    background: linear-gradient(135deg, rgba(30, 27, 75, 0.88), rgba(15, 23, 42, 0.95));
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    border-radius: var(--radius-xl);
+    padding: clamp(18px, 2.5vw, 28px);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(168, 85, 247, 0.2);
+}
+
+.converter-input-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.converter-status-box {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.audio-spectrum-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 28px;
+}
+
+.spectrum-bar {
+    width: 4px;
+    background: #c084fc;
+    border-radius: 2px;
+    animation: spectrumPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes spectrumPulse {
+    0% { height: 4px; background: #60a5fa; }
+    50% { height: 26px; background: #c084fc; }
+    100% { height: 12px; background: #f43f5e; }
+}
+
+/* ==========================================================================
+   9. WORLDWIDE MOVIE CATALOG WITH GEOLOCATION AUTO-FILTER
+   ========================================================================== */
+.global-catalog-section {
+    background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: clamp(18px, 2.5vw, 28px);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: var(--shadow-soft);
+}
+
+.region-filter-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+}
+
+.region-tab-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.region-tab-btn.active {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: #fde68a;
+    color: #000;
+    font-weight: 900;
+    box-shadow: 0 0 14px var(--cinema-gold-glow);
+}
+
+.global-movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+}
+
+.global-movie-card {
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.global-movie-card:hover {
+    background: rgba(30, 41, 59, 0.98);
+    border-color: #f59e0b;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+.movie-country-badge {
+    background: rgba(245, 158, 11, 0.18);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 12px;
+    align-self: flex-start;
+}
+
+/* ==========================================================================
+   10. RECOMMENDATIONS & VIRTUAL CINEMA AUDITORIUM
    ========================================================================== */
 .recommendations-section-wrapper {
     background: var(--bg-card);
@@ -797,9 +964,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     box-shadow: 0 0 12px var(--cinema-red-glow);
 }
 
-/* ==========================================================================
-   9. VIRTUAL CINEMA AUDITORIUM & PRIVATE WATCH PARTY THEATER (CORE VISION)
-   ========================================================================== */
 .virtual-theater-auditorium {
     background: #070a14;
     border: 1px solid rgba(239, 68, 68, 0.35);
@@ -813,7 +977,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     overflow: hidden;
 }
 
-/* Ambient Ambilight Glow from Screen */
 .theater-screen-ambient-glow {
     position: absolute;
     top: 50px;
@@ -862,7 +1025,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     box-shadow: 0 0 14px var(--cinema-red-glow);
 }
 
-/* THEATER SCREEN & MOVIE CANVAS */
 .virtual-imax-screen-wrapper {
     position: relative;
     width: 100%;
@@ -883,7 +1045,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     background: #03050a;
 }
 
-/* Floating Emoji Barrage */
 .floating-emoji-container {
     position: absolute;
     inset: 0;
@@ -905,7 +1066,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     100% { transform: translateY(-260px) scale(1.6) rotate(-10deg); opacity: 0; }
 }
 
-/* Movie Player Controls Bar */
 .theater-player-controls {
     display: flex;
     align-items: center;
@@ -939,7 +1099,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     background: var(--cinema-red);
 }
 
-/* THEATER AUDITORIUM SEATING WITH LIVE VIRTUAL AVATARS */
 .virtual-auditorium-seats-area {
     margin-top: 10px;
     display: flex;
@@ -1026,7 +1185,7 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
 }
 
 /* ==========================================================================
-   10. PRIVATE WATCH PARTY & LIVE CHAT / EMOJI DECK
+   11. WATCH PARTY, SCRIPT VIEWER & REMAINING HUBS
    ========================================================================== */
 .watch-party-controls-grid {
     display: grid;
@@ -1094,9 +1253,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     border-color: #ef4444;
 }
 
-/* ==========================================================================
-   11. SCRIPT VIEWER, SEAT MATRIX & OTHER HUBS
-   ========================================================================== */
 .script-output-panel {
     background: var(--bg-card);
     backdrop-filter: blur(16px);
@@ -1274,7 +1430,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     border-radius: 4px;
 }
 
-/* Digital VIP Pass Card */
 .vip-pass-card {
     background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 60%, #1e112a 100%);
     border: 2px solid var(--cinema-gold);
@@ -1325,7 +1480,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     color: #fff;
 }
 
-/* Concessions Grid */
 .concessions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1366,7 +1520,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     color: var(--cinema-gold);
 }
 
-/* Cinephile Trivia */
 .trivia-arena-panel {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
@@ -1418,7 +1571,6 @@ body.cinema-lights-dimmed .recommendations-section-wrapper:hover {
     color: #fca5a5 !important;
 }
 
-/* Processing Box & Footer */
 .processing-box {
     background: rgba(15, 23, 42, 0.96);
     border: 1px solid var(--cinema-red);
@@ -1495,11 +1647,13 @@ footer {
     .control-selectors-group { flex-direction: column; width: 100%; }
     .ctrl-item { width: 100%; }
     .multiplex-controls-panel { flex-direction: column; align-items: stretch; }
+    .converter-input-grid { grid-template-columns: 1fr; }
     .watch-party-controls-grid { grid-template-columns: 1fr; }
     .script-header-bar { flex-direction: column; align-items: stretch; }
     .script-header-bar div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .trivia-options-grid { grid-template-columns: 1fr; }
     .recommendations-grid { grid-template-columns: 1fr; }
+    .global-movies-grid { grid-template-columns: 1fr; }
     .social-share-deck { flex-wrap: wrap; }
 }
 

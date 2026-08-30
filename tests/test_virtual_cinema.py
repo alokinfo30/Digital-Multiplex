@@ -52,6 +52,19 @@ class TestVirtualCinema(unittest.TestCase):
         self.assertIn("recommendationsGrid", html)
         self.assertIn("refreshRecsBtn", html)
 
+    def test_universal_4dx_converter_and_worldwide_catalog_present(self):
+        response = self.client.get("/")
+        html = response.get_data(as_text=True)
+
+        self.assertIn("converterHub", html)
+        self.assertIn("converterMovieInput", html)
+        self.assertIn("converterProfileSelect", html)
+        self.assertIn("executeConvertBtn", html)
+        self.assertIn("globalCatalogHub", html)
+        self.assertIn("globalMoviesGrid", html)
+        self.assertIn("movieDubLanguage", html)
+        self.assertIn("geoLangBadge", html)
+
 
 if __name__ == "__main__":
     unittest.main()
