@@ -5,6 +5,16 @@
 [build.environment]
   PYTHON_VERSION = "3.11.9"
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), camera=(), microphone=(self)"
+    Content-Security-Policy = "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com https://player.twitch.tv https://*.dailymotion.com https://*.streamable.com blob: data:; child-src 'self' blob: data: https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com https://player.twitch.tv; media-src 'self' blob: data: https: *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://i.ytimg.com https://img.youtube.com https://img.shields.io https://raw.githubusercontent.com https://image.tmdb.org; connect-src 'self' blob: data: https: *;"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

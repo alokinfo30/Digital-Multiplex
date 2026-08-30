@@ -12,6 +12,7 @@
     <meta name="author" content="Alok Srivastava">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="theme-color" content="#060813">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com https://player.twitch.tv https://*.dailymotion.com https://*.streamable.com blob: data:; child-src 'self' blob: data: https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com https://player.twitch.tv; media-src 'self' blob: data: https: *; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://s.ytimg.com https://www.youtube-nocookie.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https: https://i.ytimg.com https://img.youtube.com https://img.shields.io https://raw.githubusercontent.com https://image.tmdb.org; connect-src 'self' blob: data: https: *;">
     <link rel="canonical" href="https://alokinfo30.github.io/Digital-Multiplex/">
 
     <!-- Open Graph / Facebook -->
@@ -262,7 +263,7 @@
                     
                     <div class="screen-video-container" id="screenVideoContainer">
                         <!-- Real Playable YouTube 4DX Stream Player -->
-                        <iframe id="cinemaYoutubePlayer" class="cinema-stream-frame" src="https://www.youtube.com/embed/Way9Dexny3w?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1" title="Digital Multiplex 4DX IMAX Player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                        <iframe id="cinemaYoutubePlayer" class="cinema-stream-frame" src="https://www.youtube-nocookie.com/embed/Way9Dexny3w?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1" title="Digital Multiplex 4DX IMAX Player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                         
                         <!-- Direct HTML5 Video Player for MP4 / WebM / HLS -->
                         <video id="cinemaVideoPlayer" class="cinema-stream-video hidden" playsinline controls></video>

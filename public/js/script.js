@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const ytId = extractYouTubeVideoId(input);
             if (ytId) {
                 videoType = 'youtube';
-                srcUrl = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
+                srcUrl = `https://www.youtube-nocookie.com/embed/${ytId}?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
             } else {
                 // 3. Search Name in Dictionary
                 const low = input.toLowerCase();
@@ -525,11 +525,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (matchedKey) {
                     const match = movieTrailerDictionary[matchedKey];
                     targetTitle = match.title;
-                    srcUrl = `https://www.youtube.com/embed/${match.id}?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
+                    srcUrl = `https://www.youtube-nocookie.com/embed/${match.id}?enablejsapi=1&autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`;
                     if (!profile) profile = match.theme;
                 } else {
                     // 4. Dynamic YouTube Search Embed
-                    srcUrl = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(input + ' official trailer')}&autoplay=1&enablejsapi=1`;
+                    srcUrl = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(input + ' official trailer')}&autoplay=1&enablejsapi=1`;
                 }
             }
         }
