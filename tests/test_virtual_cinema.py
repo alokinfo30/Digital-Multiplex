@@ -19,13 +19,26 @@ class TestVirtualCinema(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
 
-        self.assertIn("Virtual Cinema &amp; Watch Party", html.replace("&", "&amp;"))
+        self.assertIn("4DX Cinema", html)
         self.assertIn("cinemaMovieCanvas", html)
         self.assertIn("virtualTheaterHub", html)
         self.assertIn("Private Family", html)
         self.assertIn("auditoriumSeatsRow", html)
         self.assertIn("chatMessagesBox", html)
         self.assertIn("reaction-emoji-btn", html)
+
+    def test_4dx_sensory_triggers_and_hud_present(self):
+        response = self.client.get("/")
+        html = response.get_data(as_text=True)
+
+        self.assertIn("triggerSeatRumbleBtn", html)
+        self.assertIn("triggerAirBlastBtn", html)
+        self.assertIn("triggerStrobeBtn", html)
+        self.assertIn("triggerFogBtn", html)
+        self.assertIn("hud4dxMotion", html)
+        self.assertIn("hud4dxWind", html)
+        self.assertIn("theaterStrobeOverlay", html)
+        self.assertIn("screenFogOverlay", html)
 
     def test_spatial_audio_and_dim_lights_controls_present(self):
         response = self.client.get("/")

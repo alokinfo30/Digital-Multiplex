@@ -1,169 +1,145 @@
-# Digital Multiplex
+# 🎬 Digital Multiplex — 4DX Virtual Cinema & Private Watch Party Hub
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/downloads/release/python-311/)
-[![Flask](https://img.shields.io/badge/Flask-2.3-lightgrey.svg)](https://flask.palletsprojects.com/)
-[![CrewAI](https://img.shields.io/badge/CrewAI-0.35-blueviolet.svg)](https://www.crewai.com/)
-[![Render](https://img.shields.io/badge/Deploy_to-Render-46E3B7.svg)](https://render.com)
+[![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg)](https://www.python.org/downloads/release/python-3119/)
+[![Flask](https://img.shields.io/badge/Flask-3.0.3-lightgrey.svg)](https://flask.palletsprojects.com/)
+[![CrewAI](https://img.shields.io/badge/CrewAI-Multi--Agent-blueviolet.svg)](https://www.crewai.com/)
+[![4DX Cinema](https://img.shields.io/badge/4DX-Multi--Sensory_Haptics-red.svg)](#-4dx-multi-sensory-cinema-experience)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/deploy-status)](https://app.netlify.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## Overview
+> **Digital Multiplex** is a decentralized, high-immersion **4DX Virtual Cinema Theater & Private Watch Party Platform**. It empowers users worldwide to experience movies with realistic **4DX tactile haptic seat rumbles, air blasts, lightning strobes, and fog**, take virtual seats in real-time IMAX auditoriums with active user avatars, or host private VIP screening lounges with friends and family in synchronized playback with live chat and floating emoji reactions across 14+ languages.
 
-This project is a **Digital Multiplex**, a dynamic web application where users can get personalized movie recommendations, song lyrics, radio show scripts, documentaries, and podcasts. Content is generated on-the-fly using a sophisticated multi-agent system powered by **CrewAI** and **OpenRouter**.
+---
 
-The system uses a crew of specialized AI agents to curate age-appropriate content, generate creative scripts, and translate text into multiple languages, offering a personalized entertainment experience.
+## 🌟 Key Innovations & Flagship Modules
 
-## Features
+### 🚀 1. 4DX Multi-Sensory Cinema Experience
+* **💥 Physical Haptic Vibration & Sub-Bass Transducer Rumble:**
+  - Integrates the **Web Vibration API** (`navigator.vibrate`) for physical tactile feedback on mobile devices and tablets.
+  - Synthesizes authentic low-frequency sub-bass tactile pulses (`32Hz - 45Hz`) using the **Web Audio API**.
+  - Triggers physical and visual cinema screen & auditorium seat shakes (`.cinema-4dx-shake`).
+* **💨 Air Blast & Wind Gust Simulator:** Synthesizes filtered white-noise aerodynamic wind whooshes and projects air currents.
+* **⚡ Lightning & Strobe FX:** High-voltage lightning double-strobe flashes over the auditorium hall during climactic action scenes.
+* **🌫️ Mist, Fog & Rain Chamber:** Dynamic water vapor mist overlays and particle clouds.
+* **🔄 Auto-4DX Sensory Movie Sync:** Automatically synchronizes seat motion, environmental wind, and lighting bursts with on-screen action sequences.
+* **📊 4DX Environmental Telemetry HUD:** Real-time HUD showing wind speeds (km/h), haptic vibration levels, mist humidity, and chamber temperatures.
 
-*   **AI-Powered Content Generation**: Dynamically creates movie synopses, song lyrics, radio shows, documentaries, and podcasts.
-*   **User Personalization**: Tailors content based on user's age group (Baby, Young Adult, Senior) and preferred language.
-*   **Hybrid Content Model**: Integrates with the **TMDB API** to fetch real movie data, with a fallback to AI generation if TMDB is unavailable or disabled.
-*   **Multi-Language Support**: Uses a self-hosted **LibreTranslate** instance for real-time content translation, ensuring privacy and control.
-*   **User Authentication**: Secure user registration and login system with persistent sessions (Flask-Login).
-*   **Content History**: Logged-in users can view and manage their previously generated content in their profile.
-*   **Asynchronous Processing**: Handles long-running AI tasks in the background using Python's `threading` module, preventing UI freezes.
-*   **Rate Limiting**: Protects authentication endpoints against brute-force attacks (Flask-Limiter).
-*   **Responsive UI**: A clean, mobile-first interface for a seamless experience on any device.
+---
 
-## Architecture
+### 🏛️ 2. Real-Time Virtual Cinema Auditorium
+* **Curved IMAX Laser Screen:** 60FPS high-definition canvas cinema screen playing animated starfields, laser perspective grids, holographic titles, and localized subtitle overlays.
+* **🌈 Real-Time Ambilight Ambient Projection:** Dynamically reads on-screen color palettes and projects radiant ambient illumination onto the virtual cinema auditorium walls.
+* **💡 "Dim Lights" Theater Mode:** Toggles dark cinema mode for authentic theatrical atmosphere.
+* **🔊 Spatial Surround Sound & Dolby Atmos 3D:** Synthesized harmonic sub-bass sweeps and atmospheric acoustic acoustics.
+* **Multi-Hall Switcher:** Switch between *Hall 1: 4DX IMAX Laser*, *Hall 2: Cyberpunk Extreme 4DX*, *Hall 3: Dolby Atmos Classic*, and *Private Family Suites*.
 
-### How It Works
+---
 
-1.  **User Interaction**: The user selects a content type, age group, and language from the frontend.
-2.  **API Request**: The frontend sends an asynchronous request to the Flask backend (`/api/generate`).
-3.  **Job Creation**: The backend creates a unique job ID and starts a background thread to handle the AI generation task.
-4.  **CrewAI Orchestration**: A `MultiplexCrew` is assembled with specialized agents (e.g., `Content Curator`, `Movie Generator`).
-5.  **Content Generation**: The crew collaborates to generate the content. This may involve a curator agent first selecting a theme, followed by a generator agent creating the script.
-6.  **Polling for Results**: The frontend periodically polls the `/api/result/<job_id>` endpoint until the content is ready.
-7.  **Display**: Once completed, the generated content is displayed to the user.
+### 💺 3. Interactive Auditorium Seating with Live Avatars
+* Screen-facing virtual audience seating perspective with interactive avatar presence:
+  - `Alex 🍿 (You)` (Active User)
+  - `Emma ❤️`
+  - `David 👓`
+  - `Sophia ✨`
+  - `Dad 👨‍💼`
+  - `Mom 👩‍🍳`
+  - `Lucas 🚀`
+  - `Mia 🎧`
+* **Custom Seat Selection:** Click any seat in the auditorium to move your seat position or customize your personal Avatar Name.
 
-### Multi-Model Fallback
+---
 
-The `ModelManager` provides resilience by automatically testing a list of primary and fallback models from OpenRouter. If a preferred model for an agent is unavailable, the system gracefully falls back to the next available one, ensuring service continuity.
+### 👑 4. Private Family & Friends Watch Party Suite
+* **Secure Private Screening Rooms:** Generate custom room codes (e.g. `#FAMILY-2026`, `#SUITE-778`) and **1-Click Shareable Invite Links**.
+* **Exclusive Access:** Only friends and family with your private code/link can enter your VIP suite.
+* **🔄 Synchronized Playback (Sync Stream):** Play, pause, seek, and feature film switches synchronize instantly across all connected family and friend devices.
+* **💬 Real-Time Live Watch Party Chat:** Whisper chat in real-time with family without interrupting the movie audio.
+* **🚀 Floating Emoji Reactions Deck:** Tap ❤️, 🍿, 😱, 👏, 😂, 🔥 to launch floating, glowing reaction emojis with physics over the movie screen.
 
-## Getting Started (Local Development)
+---
 
-Follow these steps to run the project on your local machine.
+### 🎥 5. Autonomous Multi-Agent Creative Production Hubs
+1. **🎥 Cinema Screenplay Studio:** Hollywood-grade loglines, characters, scene scripts `[INT/EXT]`, and formatted dialogue with Web Speech API text-to-speech narration.
+2. **🎵 Hit Music Producer & Audio Chime:** Full song lyrics (verses, chorus, bridge, tempo BPM, musical key) with real-time Web Audio API harmonic chord progression synthesis (`[Am] [F] [C] [G]`).
+3. **📻 Live 24/7 Radio FM 104.5:** Late-night talk show scripts, RJ banter, live caller dialogues, and station jingles.
+4. **📽️ IMAX Doc Vault:** 4K nature, cosmos, and AI docu-series narrator scripts.
+5. **🎙️ Podcast Master Studio:** Co-host conversational breakdowns, episode outlines, and show notes markdown export.
+6. **🎟️ VIP Seat Matrix & NFC Pass Simulator:** Interactive theater hall seat selector with NFC smart turnstile simulator and turnstile audio chime.
+7. **🍿 Concessions & Promo Bar:** Gourmet caramel popcorn, nachos, slushies cart with real-time promo code engine (`MULTIPLEX20` / `POPCORN50` for 20% discount).
+8. **🏆 Cinephile Trivia Arena:** 5-question pop-culture quiz with instant scoring and **Multiplex Stars** loyalty wallet.
 
-### 1. Prerequisites
+---
 
-*   **Python 3.11**: Ensure you have Python 3.11 installed and added to your system's PATH.
-*   **Git**: For cloning the project repository.
-*   **Docker Desktop**: Required to run the LibreTranslate server in a container.
+### 🌐 6. Location-Based Auto-Detection & 14+ Languages
+* **Auto-Discovery:** Automatically detects user timezone and browser locale to deliver content in native languages:
+  - 🇮🇳 **Hindi (हिन्दी)**
+  - 🌐 **English (Global)**
+  - 🇪🇸 **Spanish (Español)**
+  - 🇫🇷 **French (Français)**
+  - 🇩🇪 **German (Deutsch)**
+  - 🇧🇷 **Portuguese (Português)**
+  - 🇸🇦 **Arabic (العربية)**
+  - 🇨🇳 **Chinese (中文)**
+  - 🇯🇵 **Japanese (日本語)**
+  - 🇰🇷 **Korean (한국어)**
+  - 🇮🇹 **Italian (Italiano)**
+  - 🇷🇺 **Russian (Русский)**
+  - 🇳🇱 **Dutch (Nederlands)**
+  - 🇹🇷 **Turkish (Türkçe)**
 
-### 2. Installation
+---
 
-1.  **Clone the Repository**:
-    ```bash
-    git clone <your-repository-url>
-    cd Digital-Multiplex
-    ```
-2.  **Set Up Environment**:
-    *   Create a `.env` file in the root directory by copying `.env.example`.
-    *   Fill in your secret keys for `OPENROUTER_API_KEY` and `TMDB_API_KEY`.
-3.  **Create Virtual Environment and Install Dependencies**:
-    ```bash
-    python -m venv venv
-    .\venv\Scripts\activate  # On Windows
-    # source venv/bin/activate  # On macOS/Linux
-    
-    pip install -r requirements.txt
-    ```
-4.  **Initialize the Database**:
-    ```bash
-    flask db init
-    flask db migrate -m "Initial migration."
-    flask db upgrade
-    ```
-    *(Note: `flask db init` only needs to be run once for the project. Subsequent deployments or local setups will only need `flask db upgrade`.)*
+### 🛡️ 7. Enterprise Security & Search Engine / AI Ranking (#1 Rank)
+* **Strict Security Headers:** Comprehensive CSP, HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, and `Referrer-Policy: strict-origin-when-cross-origin`.
+* **Top Search & LLM Discovery:**
+  - `public/llms.txt` & `public/llms-full.txt` for ChatGPT Search, Perplexity AI, Claude, and Gemini.
+  - `public/robots.txt` & `public/sitemap.xml` with explicit crawler directives.
+  - Schema.org JSON-LD structured data (`SoftwareApplication`, `Movie`, `MusicRecording`, `FAQPage`, `BreadcrumbList`).
 
-### 3. Running the Application
-The easiest way to start the application is to use the provided batch script. It will handle starting both the LibreTranslate server (via Docker) and the Flask web application.
+---
 
-**Before you start:** Make sure **Docker Desktop is running**.
+## 🛠️ Technology Stack
+* **Frontend:** Vanilla JS (ES6+), HTML5 Canvas 60FPS Engine, Web Audio API Synthesizer, Web Speech API (TTS & STT), Web Vibration API (4DX Haptics), Modern Fluid CSS with Cyberpunk aesthetic.
+* **Backend:** Python 3.11.9, Flask 3.0.3, CrewAI Multi-Agent Framework, OpenRouter API (GPT-4o, Mistral 8x22B, Llama 3.3, Claude 3.5), TMDB API, LibreTranslate.
+* **Testing:** Standard Python `unittest` test suites covering route integrity, API fallbacks, security headers, and SEO metadata.
 
-1.  **Run the Start Script**:
-    In your terminal (where the virtual environment is active), simply run:
-    ```bash
-    .\start_all.bat
-    ```
-    This will open two new terminal windows: one for the LibreTranslate Docker container and one for the Flask application.
+---
 
-2.  **Access the Application**:
-    Your application will be available at **http://localhost:5000**. The translation server will be at `http://localhost:5001`.
+## 🚀 Quickstart & Local Development
 
-## Production Deployment on Render
-
-This project is configured for seamless deployment on Render.com using Infrastructure-as-Code via the `render.yaml` file.
-
-### Deployment Steps
-
-1.  **Push to Git**: Ensure all your code, including `render.yaml` and `build.sh`, is pushed to a GitHub or GitLab repository.
-2.  **Create Render Blueprint**:
-    *   Log in to your Render Dashboard.
-    *   Click **New +** > **Blueprint**.
-    *   Connect your repository. Render will automatically detect and parse your `render.yaml` file.
-3.  **Configure Environment Group**:
-    *   Before deploying, create an **Environment Group** named `digital-multiplex-secrets` in your Render dashboard.
-    *   Add the following environment variables to this group, using secure values:
-        *   `SECRET_KEY` (Generate a strong, random key)
-        *   `OPENROUTER_API_KEY`
-        *   `TMDB_API_KEY` (If `USE_TMDB` is `True`)
-        *   `FLASK_ENV` (Set to `production`)
-        *   `DEBUG` (Set to `False`)
-        *   `SESSION_COOKIE_SECURE` (Set to `True`)
-        *   `SESSION_COOKIE_HTTPONLY` (Set to `True`)
-        *   `SESSION_COOKIE_SAMESITE` (Set to `Lax` or `Strict`)
-    *   The `render.yaml` will automatically link this group to your web service.
-4.  **Deploy**: Click "Apply" or "Create New Blueprint Service". Render will provision a PostgreSQL database, deploy the LibreTranslate server (which will download language models to a persistent disk), and then deploy your Flask web application.
-
-### Render Services Overview
-
-The `render.yaml` file defines three interconnected services:
-
-1.  **PostgreSQL Database (`multiplex-db`)**: A managed PostgreSQL instance for storing user accounts, content history, and preferences.
-2.  **LibreTranslate Server (`libretranslate-server`)**: A private Docker service running LibreTranslate. It uses a persistent disk (`lt-models`) to store downloaded language models, ensuring they are not re-downloaded on every deploy.
-3.  **Flask Web Application (`digital-multiplex`)**: A Python web service running your Flask application with Gunicorn. It's configured for:
-    *   **Automatic Deployments**: `autoDeploy: true` triggers a new deploy on every Git push.
-    *   **Health Checks**: A secure `/health` endpoint ensures the application is running correctly.
-    *   **Scalability**: Gunicorn workers (`--workers 3`) handle concurrent requests.
-    *   **Robustness**: Increased Gunicorn timeout (`--timeout 120`) for long-running AI tasks.
-    *   **Logging**: Access and error logs are streamed to Render's dashboard.
-    *   **Environment Variables**: Critical configurations are managed via environment variables, including linking to the `digital-multiplex-secrets` Environment Group.
-
-## Project Structure
-
-```
-DigitalMultiplex/
-├── app/                  # Core application logic
-│   ├── __init__.py       # Application factory and extension initialization
-│   ├── main.py           # Main routes, API endpoints, and job management
-│   ├── auth.py           # User authentication routes and logic
-│   ├── models.py         # SQLAlchemy database models (User, History, Preference)
-│   ├── crew.py           # CrewAI orchestration, agent/task setup, and fallback generation
-│   ├── agents.py         # Definitions for all AI agents
-│   ├── tasks.py          # Definitions for all CrewAI tasks
-│   ├── model_manager.py  # Manages OpenRouter AI models, fallback, and LLM instantiation
-│   ├── tmdb.py           # TMDB API integration for real movie data
-│   └── translate.py      # LibreTranslate client for translation services
-├── templates/            # Jinja2 HTML templates for the frontend
-├── static/               # Static assets: CSS, JavaScript, images
-├── data/                 # Local SQLite database file (ignored by Git)
-├── .env                  # Local environment variables (ignored by Git)
-├── .env.example          # Template for local environment variables
-├── .gitignore            # Specifies files/directories to ignore in Git
-├── requirements.txt      # Python package dependencies (pinned versions for stability)
-├── run.py                # Application entry point
-├── build.sh              # Shell script for Render's build process (installs deps, runs migrations)
-├── render.yaml           # Infrastructure-as-Code for Render deployment
-├── Dockerfile.libretranslate # Dockerfile for the LibreTranslate service
-├── start_libretranslate.py # Python script to run LibreTranslate locally (alternative to Docker)
-├── start_all.bat         # Windows batch script to start all local services
-└── README.md             # Project documentation
+### 1. Clone the Repository
+```bash
+git clone https://github.com/alokinfo30/Digital-Multiplex.git
+cd Digital-Multiplex
 ```
 
-## Contributing
+### 2. Set Up Virtual Environment & Dependencies
+```bash
+python -m venv venv
+# On Windows:
+.\venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
 
-Contributions are welcome! Please feel free to open issues, submit pull requests, or suggest improvements.
+pip install -r requirements.txt
+```
 
-## License
+### 3. Run Automated Tests
+```bash
+python -m unittest discover tests
+```
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+### 4. Start the Application
+```bash
+python run.py
+```
+Open **http://localhost:5000** in your browser to experience the 4DX Virtual Multiplex!
+
+---
+
+## 📄 License
+This project is open-source and licensed under the [MIT License](LICENSE).
+
+---
+
+© 2026 **Alok Srivastava** | *World-Class Digital Entertainment & 4DX Cinema Technology*

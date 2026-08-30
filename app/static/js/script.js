@@ -34,6 +34,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const fullscreenTheaterBtn = document.getElementById('fullscreenTheaterBtn');
     const moviePlayingTitle = document.getElementById('moviePlayingTitle');
     const imaxScreenWrapper = document.getElementById('imaxScreenWrapper');
+    const theaterStrobeOverlay = document.getElementById('theaterStrobeOverlay');
+    const screenFogOverlay = document.getElementById('screenFogOverlay');
+    const auditoriumSeatsContainer = document.getElementById('auditoriumSeatsContainer');
+
+    // 4DX Triggers
+    const triggerSeatRumbleBtn = document.getElementById('triggerSeatRumbleBtn');
+    const triggerAirBlastBtn = document.getElementById('triggerAirBlastBtn');
+    const triggerStrobeBtn = document.getElementById('triggerStrobeBtn');
+    const triggerFogBtn = document.getElementById('triggerFogBtn');
+    const toggleAuto4dxBtn = document.getElementById('toggleAuto4dxBtn');
+    const hud4dxMotion = document.getElementById('hud4dxMotion');
+    const hud4dxWind = document.getElementById('hud4dxWind');
+    const hud4dxMist = document.getElementById('hud4dxMist');
 
     // Watch Party & Chat
     const chatMessagesBox = document.getElementById('chatMessagesBox');
@@ -61,12 +74,12 @@ document.addEventListener('DOMContentLoaded', function() {
     let isMoviePlaying = true;
     let isMuted = false;
     let isLightsDimmed = false;
+    let isAuto4dx = true;
     let activeFeatureFilmIdx = 0;
     let userAvatarName = 'Alex 🍿';
-    let userSeatIdx = 3;
 
     // ---------------------------------------------------------
-    // 2. WEB AUDIO API SYNTHESIZER (SURROUND SOUND & SFX)
+    // 2. WEB AUDIO API SYNTHESIZER (SURROUND SOUND & 4DX SFX)
     // ---------------------------------------------------------
     let audioCtx = null;
     function getAudioContext() {
@@ -100,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
             oscSub.stop(now + 2.6);
 
             // Harmonic Chime Swell
-            const freqs = [329.63, 392.00, 493.88, 659.25, 987.77]; // E minor 9th shimmer
+            const freqs = [329.63, 392.00, 493.88, 659.25, 987.77];
             freqs.forEach((freq, idx) => {
                 const osc = ctxA.createOscillator();
                 const gain = ctxA.createGain();
@@ -116,6 +129,55 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (e) {
             console.log('Web Audio Atmos Error:', e);
+        }
+    }
+
+    // 4DX Sub-Bass Transducer Rumble
+    function play4dxSubBassRumble() {
+        try {
+            const ctxA = getAudioContext();
+            const now = ctxA.currentTime;
+            const osc = ctxA.createOscillator();
+            const gain = ctxA.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(45, now);
+            osc.frequency.linearRampToValueAtTime(32, now + 0.4);
+            gain.gain.setValueAtTime(0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            osc.connect(gain);
+            gain.connect(ctxA.destination);
+            osc.start(now);
+            osc.stop(now + 0.5);
+        } catch (e) {
+            console.log('4DX Audio Error:', e);
+        }
+    }
+
+    // 4DX Air Blast White Noise Generator
+    function play4dxAirBlastSFX() {
+        try {
+            const ctxA = getAudioContext();
+            const now = ctxA.currentTime;
+            const bufferSize = ctxA.sampleRate * 0.4;
+            const buffer = ctxA.createBuffer(1, bufferSize, ctxA.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = ctxA.createBufferSource();
+            noise.buffer = buffer;
+            const filter = ctxA.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1200;
+            const gain = ctxA.createGain();
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctxA.destination);
+            noise.start(now);
+        } catch (e) {
+            console.log('4DX Air Blast Error:', e);
         }
     }
 
@@ -139,6 +201,91 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ---------------------------------------------------------
+    // 3. 4DX MULTI-SENSORY EFFECT TRIGGERS & HAPTICS
+    // ---------------------------------------------------------
+    function trigger4dxSeatRumble() {
+        // Physical Tactile Vibration API (Mobile / Tablet)
+        if ('vibrate' in navigator) {
+            navigator.vibrate([120, 40, 200, 40, 300]);
+        }
+
+        // Sub-Bass Transducer Rumble
+        play4dxSubBassRumble();
+
+        // Screen & Auditorium Visual Jolt
+        if (imaxScreenWrapper) {
+            imaxScreenWrapper.classList.remove('cinema-4dx-shake');
+            void imaxScreenWrapper.offsetWidth;
+            imaxScreenWrapper.classList.add('cinema-4dx-shake');
+        }
+        if (auditoriumSeatsContainer) {
+            auditoriumSeatsContainer.classList.remove('cinema-4dx-shake');
+            void auditoriumSeatsContainer.offsetWidth;
+            auditoriumSeatsContainer.classList.add('cinema-4dx-shake');
+        }
+
+        if (hud4dxMotion) {
+            hud4dxMotion.textContent = '💥 Motion: RUMBLE (4DX MAX)';
+            hud4dxMotion.style.color = '#f87171';
+            setTimeout(() => {
+                hud4dxMotion.textContent = '💥 Motion: Active';
+                hud4dxMotion.style.color = '#67e8f9';
+            }, 1800);
+        }
+    }
+
+    function trigger4dxAirBlast() {
+        play4dxAirBlastSFX();
+        if (hud4dxWind) {
+            hud4dxWind.textContent = '💨 Wind: 80 km/h GUST!';
+            hud4dxWind.style.color = '#38bdf8';
+            setTimeout(() => {
+                hud4dxWind.textContent = '💨 Wind: 48 km/h';
+                hud4dxWind.style.color = '#67e8f9';
+            }, 1800);
+        }
+    }
+
+    function trigger4dxLightningStrobe() {
+        if (theaterStrobeOverlay) {
+            theaterStrobeOverlay.classList.remove('active-strobe');
+            void theaterStrobeOverlay.offsetWidth;
+            theaterStrobeOverlay.classList.add('active-strobe');
+        }
+        play4dxSubBassRumble();
+    }
+
+    function trigger4dxMist() {
+        if (screenFogOverlay) {
+            screenFogOverlay.classList.add('active-fog');
+            setTimeout(() => {
+                screenFogOverlay.classList.remove('active-fog');
+            }, 3000);
+        }
+        if (hud4dxMist) {
+            hud4dxMist.textContent = '🌫️ Mist: 98% Cyber-Rain!';
+            hud4dxMist.style.color = '#a7f3d0';
+            setTimeout(() => {
+                hud4dxMist.textContent = '🌫️ Mist: 85% Fog';
+                hud4dxMist.style.color = '#67e8f9';
+            }, 3000);
+        }
+    }
+
+    if (triggerSeatRumbleBtn) triggerSeatRumbleBtn.addEventListener('click', trigger4dxSeatRumble);
+    if (triggerAirBlastBtn) triggerAirBlastBtn.addEventListener('click', trigger4dxAirBlast);
+    if (triggerStrobeBtn) triggerStrobeBtn.addEventListener('click', trigger4dxLightningStrobe);
+    if (triggerFogBtn) triggerFogBtn.addEventListener('click', trigger4dxMist);
+
+    if (toggleAuto4dxBtn) {
+        toggleAuto4dxBtn.addEventListener('click', function() {
+            isAuto4dx = !isAuto4dx;
+            toggleAuto4dxBtn.textContent = isAuto4dx ? '🔄 Auto-4DX: ON' : '⏸️ Auto-4DX: OFF';
+            toggleAuto4dxBtn.style.color = isAuto4dx ? '#38bdf8' : '#94a3b8';
+        });
+    }
+
     if (spatialAudioBtn) {
         spatialAudioBtn.addEventListener('click', function() {
             playSpatialAtmosSwell();
@@ -156,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 3. LOCATION & BROWSER AUTOMATIC LANGUAGE DETECTION
+    // 4. LOCATION & BROWSER AUTOMATIC LANGUAGE DETECTION
     // ---------------------------------------------------------
     const languageMap = {
         'hi': { name: 'HINDI (HI) - हिन्दी', locale: 'hi-IN', country: 'India' },
@@ -243,27 +390,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 4. VIRTUAL IMAX SCREEN 60FPS CINEMATIC CANVAS ENGINE
+    // 5. VIRTUAL IMAX SCREEN 60FPS CINEMATIC CANVAS ENGINE
     // ---------------------------------------------------------
     const featureFilms = [
         {
-            title: 'Horizon Neo: The Cybernetic Odyssey',
-            tag: 'IMAX 3D Laser • 4K Dolby Vision',
+            title: 'Horizon Neo: The 4DX Cybernetic Odyssey',
+            tag: 'IMAX 3D Laser • 4DX Extreme Haptics',
             sub: 'In 2088, the frequencies of the past awaken the stars...',
             colorA: '#ef4444',
             colorB: '#f59e0b',
             theme: 'cyberpunk'
         },
         {
-            title: 'Cosmic Voyage: Uncharted Galaxies',
-            tag: 'IMAX 70mm Film • Deep Space Odyssey',
+            title: 'Cosmic Voyage: Uncharted Galaxies 4DX',
+            tag: 'IMAX 70mm Film • Deep Space Nebula',
             sub: 'Journey beyond the heliosphere boundary into the unknown.',
             colorA: '#38bdf8',
             colorB: '#8b5cf6',
             theme: 'space'
         },
         {
-            title: 'Starlight Melodies & Neon Nights',
+            title: 'Starlight Melodies & Neon Nights 4DX',
             tag: 'Dolby Atmos Live Acoustic Premiere',
             sub: 'Harmonies that resonate through time and space.',
             colorA: '#ec4899',
@@ -332,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.shadowColor = film.colorA;
             ctx.shadowBlur = 24;
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 36px Inter, sans-serif';
+            ctx.font = '900 34px Inter, sans-serif';
             ctx.fillText(film.title, 480, 240);
 
             // Subtitle Tag
@@ -350,6 +497,18 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillText(`💬 ${film.sub}`, 480, 492);
 
             ctx.restore();
+
+            // Auto-4DX Sensory Motion Synchronization (Every ~180 frames)
+            if (isAuto4dx && animFrame % 240 === 0) {
+                const fxRand = Math.random();
+                if (fxRand < 0.4) {
+                    trigger4dxSeatRumble();
+                } else if (fxRand < 0.7) {
+                    trigger4dxAirBlast();
+                } else {
+                    trigger4dxLightningStrobe();
+                }
+            }
         } else {
             // Paused Overlay
             ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -357,10 +516,10 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.fillStyle = '#ef4444';
             ctx.font = '900 48px Inter, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('⏸️ SCREENING PAUSED', 480, 270);
+            ctx.fillText('⏸️ 4DX SCREENING PAUSED', 480, 270);
             ctx.font = '600 18px Inter, sans-serif';
             ctx.fillStyle = '#cbd5e1';
-            ctx.fillText('Press Play to resume synchronized playback with your suite', 480, 310);
+            ctx.fillText('Press Play to resume synchronized 4DX playback with your suite', 480, 310);
         }
 
         // Ambient Ambilight Glow sync
@@ -380,7 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
         moviePlayPauseBtn.addEventListener('click', function() {
             isMoviePlaying = !isMoviePlaying;
             moviePlayPauseBtn.textContent = isMoviePlaying ? '⏸️ Pause' : '▶️ Resume Film';
-            broadcastChatMessage('System', isMoviePlaying ? '▶️ Resumed screening for all viewers' : '⏸️ Paused screening');
+            broadcastChatMessage('System', isMoviePlaying ? '▶️ Resumed 4DX screening for all viewers' : '⏸️ Paused screening');
         });
     }
 
@@ -392,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 moviePlayingTitle.textContent = `NOW SCREENING: "${f.title}" (${f.tag})`;
             }
             playSpatialAtmosSwell();
+            trigger4dxSeatRumble();
             broadcastChatMessage('System', `🎬 Feature switched to: "${f.title}"`);
         });
     }
@@ -414,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 5. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
+    // 6. VIRTUAL AUDITORIUM SEATING ROW WITH LIVE AVATARS
     // ---------------------------------------------------------
     let viewersList = [
         { name: 'Emma ❤️', avatar: '👩', seat: 'Seat 1', isFriend: true },
@@ -444,11 +604,11 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
 
             seatDiv.addEventListener('click', function() {
-                // Change User Seat to this position
                 viewersList.forEach(item => { item.isUser = false; });
                 viewersList[idx].isUser = true;
                 viewersList[idx].name = `${userAvatarName} (You)`;
                 renderAuditoriumSeats();
+                trigger4dxSeatRumble();
                 broadcastChatMessage('System', `💺 You moved to ${v.seat}`);
             });
 
@@ -472,7 +632,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 6. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
+    // 7. PRIVATE WATCH PARTY & LIVE CHAT / FLOATING EMOJI DECK
     // ---------------------------------------------------------
     function broadcastChatMessage(sender, text, isMe = false) {
         if (!chatMessagesBox) return;
@@ -510,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const emoji = this.dataset.emoji;
             triggerFloatingEmoji(emoji);
+            trigger4dxSeatRumble();
             broadcastChatMessage(`${userAvatarName}`, `reacted ${emoji}`, true);
         });
     });
@@ -528,14 +689,15 @@ document.addEventListener('DOMContentLoaded', function() {
         joinPrivateRoomBtn.addEventListener('click', function() {
             const code = (privateRoomCodeInput.value || 'FAMILY-2026').trim().toUpperCase();
             playSpatialAtmosSwell();
-            alert(`👑 Entered Private Watch Party Suite: #${code}! Sync stream connected with loved ones.`);
+            trigger4dxSeatRumble();
+            alert(`👑 Entered Private 4DX Watch Party Suite: #${code}! Sync stream connected with loved ones.`);
             const privateHall = document.getElementById('privateHallPill');
             if (privateHall) {
                 privateHall.textContent = `👑 Private Suite (#${code})`;
                 hallPillBtns.forEach(b => b.classList.remove('active'));
                 privateHall.classList.add('active');
             }
-            broadcastChatMessage('Suite Host', `Welcome to Private Suite #${code}! The screening is fully synchronized.`);
+            broadcastChatMessage('Suite Host', `Welcome to Private Suite #${code}! The 4DX screening is fully synchronized.`);
         });
     }
 
@@ -544,8 +706,9 @@ document.addEventListener('DOMContentLoaded', function() {
             hallPillBtns.forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             const hall = this.dataset.hall;
+            trigger4dxSeatRumble();
             if (hall === 'private') {
-                alert('👑 Switched to Private Family Suite. Invite friends to watch along!');
+                alert('👑 Switched to Private Family 4DX Suite. Invite friends to watch along!');
             } else {
                 alert(`🎬 Switched to Auditorium ${this.textContent}`);
             }
@@ -553,7 +716,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 7. STUDIO & HUB TAB SWITCHER (8 HUBS)
+    // 8. STUDIO & HUB TAB SWITCHER (8 HUBS)
     // ---------------------------------------------------------
     function showHub(tabType) {
         currentType = tabType;
@@ -590,7 +753,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ---------------------------------------------------------
-    // 8. VOICE MICROPHONE INPUT
+    // 9. VOICE MICROPHONE INPUT
     // ---------------------------------------------------------
     if (voiceMicBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -609,7 +772,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     recognition.lang = (languageMap[currentLang] && languageMap[currentLang].locale) || 'en-US';
                     recognition.start();
                     voiceMicBtn.classList.add('recording');
-                    if (quickThemeInput) quickThemeInput.placeholder = '🎙️ Listening to story idea... Speak now!';
+                    if (quickThemeInput) quickThemeInput.placeholder = '🎙️ Listening to 4DX story idea... Speak now!';
                 } catch (e) {
                     console.error('Speech recognition error:', e);
                 }
@@ -626,30 +789,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
             } else {
-                // If in virtual theater, switch film title
                 if (moviePlayingTitle) {
-                    moviePlayingTitle.textContent = `NOW SCREENING: "${transcript}" (Custom Feature)`;
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${transcript}" (4DX Feature)`;
                 }
                 playSpatialAtmosSwell();
-                broadcastChatMessage('System', `🎬 Now screening custom feature: "${transcript}"`);
+                trigger4dxSeatRumble();
+                broadcastChatMessage('System', `🎬 Now screening custom 4DX feature: "${transcript}"`);
             }
         };
 
         recognition.onerror = function() {
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            if (quickThemeInput) quickThemeInput.placeholder = "Enter movie premise to screen...";
+            if (quickThemeInput) quickThemeInput.placeholder = "Enter 4DX movie premise...";
         };
 
         recognition.onend = function() {
             voiceMicBtn.classList.remove('recording');
             isRecording = false;
-            if (quickThemeInput) quickThemeInput.placeholder = "Enter movie premise to screen...";
+            if (quickThemeInput) quickThemeInput.placeholder = "Enter 4DX movie premise...";
         };
     }
 
     // ---------------------------------------------------------
-    // 9. RANDOMIZE / SURPRISE ME
+    // 10. RANDOMIZE / SURPRISE ME
     // ---------------------------------------------------------
     const surpriseThemes = [
         "Time traveler accidentally replaces a pop music icon in 1985",
@@ -670,9 +833,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 generateEntertainmentContent(currentType);
             } else {
                 if (moviePlayingTitle) {
-                    moviePlayingTitle.textContent = `NOW SCREENING: "${randomTheme}"`;
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${randomTheme}" (4DX)`;
                 }
                 playSpatialAtmosSwell();
+                trigger4dxSeatRumble();
             }
         });
     }
@@ -682,10 +846,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const customPremise = quickThemeInput ? quickThemeInput.value.trim() : '';
             if (currentType === 'virtual_theater' && customPremise) {
                 if (moviePlayingTitle) {
-                    moviePlayingTitle.textContent = `NOW SCREENING: "${customPremise}" (4K HDR)`;
+                    moviePlayingTitle.textContent = `NOW SCREENING: "${customPremise}" (4K HDR 4DX)`;
                 }
                 playSpatialAtmosSwell();
-                broadcastChatMessage('System', `🎬 Screening custom feature: "${customPremise}"`);
+                trigger4dxSeatRumble();
+                broadcastChatMessage('System', `🎬 Screening custom 4DX feature: "${customPremise}"`);
             } else if (['movie', 'song', 'radio', 'documentary', 'podcast'].includes(currentType)) {
                 generateEntertainmentContent(currentType);
             } else {
@@ -705,7 +870,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ---------------------------------------------------------
-    // 10. SCRIPT GENERATION & SIMULATION ENGINE
+    // 11. SCRIPT GENERATION & SIMULATION ENGINE
     // ---------------------------------------------------------
     function buildClientSimulation(type, age, lang, genre, userTheme) {
         const theme = userTheme || 'Epic Galactic Odyssey';
@@ -714,8 +879,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (type === 'movie') {
             if (lang === 'hi') {
-                return `<h2>🎥 विशेष ब्लॉकबस्टर पटकथा: "होराइजन नियॉन की दास्तान"</h2>
-<p><b>शैली:</b> ${genre.toUpperCase()} | <b>आयु वर्ग:</b> ${age.toUpperCase()} | <b>भाषा:</b> ${langName}</p>
+                return `<h2>🎥 विशेष 4DX ब्लॉकबस्टर पटकथा: "होराइजन नियॉन की दास्तान"</h2>
+<p><b>शैली:</b> ${genre.toUpperCase()} | <b>आयु वर्ग:</b> ${age.toUpperCase()} | <b>भाषा:</b> ${langName} | <b>4DX प्रभाव:</b> एक्टिव</p>
 <p><b>विषय (Theme):</b> "${theme}"</p>
 <br/>
 <h3>🌟 कहानी का सार (Logline):</h3>
@@ -732,8 +897,8 @@ document.addEventListener('DOMContentLoaded', function() {
 <p><b>कैलन:</b><br/><i>"वे कहते हैं कि पुरानी यादें मिट चुकी हैं... लेकिन तरंगे कभी नहीं मरतीं, वे बस सुने जाने का इंतज़ार करती हैं।"</i></p>`;
             }
 
-            return `<h2>🎥 Featured Blockbuster Screenplay: "Chronicles of Horizon Neo"</h2>
-<p><b>Genre:</b> ${genre.toUpperCase()} | <b>Age Tier:</b> ${age.toUpperCase()} | <b>Language:</b> ${langName}</p>
+            return `<h2>🎥 Featured 4DX Blockbuster Screenplay: "Chronicles of Horizon Neo"</h2>
+<p><b>Genre:</b> ${genre.toUpperCase()} | <b>Age Tier:</b> ${age.toUpperCase()} | <b>Language:</b> ${langName} | <b>4DX Mode:</b> Extreme Motion</p>
 <p><b>Theme:</b> "${theme}"</p>
 <br/>
 <h3>🌟 Story Logline:</h3>
@@ -781,8 +946,8 @@ We'll be dancing till the break of day!</blockquote>`;
         }
 
         if (type === 'documentary') {
-            return `<h2>📽️ IMAX Cinematic Docu-Series: "Wonders of the Unseen Realm"</h2>
-<p><b>Category:</b> Nature & Science Exploration | <b>Language:</b> ${langName} | <b>Pacing:</b> Immersive 4K</p>
+            return `<h2>📽️ IMAX 4DX Cinematic Docu-Series: "Wonders of the Unseen Realm"</h2>
+<p><b>Category:</b> Nature & Science Exploration | <b>Language:</b> ${langName} | <b>Pacing:</b> Immersive 4K 4DX</p>
 <p><b>Subject:</b> "${theme}"</p>
 <br/>
 <h3>🎙️ Narrator Voiceover [ACT I - THE HIDDEN CORRIDORS]:</h3>
@@ -796,8 +961,7 @@ We'll be dancing till the break of day!</blockquote>`;
 <h3>🎧 Episode Outline:</h3>
 <p>• <b>[00:00 - 04:30]:</b> Welcome & Breakdown of ${theme}.</p>
 <p>• <b>[04:30 - 18:45]:</b> Expert Perspectives & Creative Frameworks.</p>
-<p>• <b>[18:45 - 28:00]:</b> Summary & Actionable Takeaways.</p>
-`;
+<p>• <b>[18:45 - 28:00]:</b> Summary & Actionable Takeaways.</p>`;
     }
 
     async function generateEntertainmentContent(type) {
@@ -853,7 +1017,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 11. TEXT-TO-SPEECH NARRATION (TTS)
+    // 12. TEXT-TO-SPEECH NARRATION (TTS)
     // ---------------------------------------------------------
     if (speakScriptBtn && 'speechSynthesis' in window) {
         speakScriptBtn.addEventListener('click', function() {
@@ -897,7 +1061,7 @@ We'll be dancing till the break of day!</blockquote>`;
     }
 
     // ---------------------------------------------------------
-    // 12. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
+    // 13. VIP SEAT MATRIX & CONCESSIONS & TRIVIA CONTROLLERS
     // ---------------------------------------------------------
     let selectedSeats = ['C3', 'C4'];
     function renderSeatMatrix() {
@@ -957,7 +1121,8 @@ We'll be dancing till the break of day!</blockquote>`;
     if (confirmSeatsBtn) {
         confirmSeatsBtn.addEventListener('click', function() {
             playSpatialAtmosSwell();
-            alert(`🎟️ VIP Tickets Confirmed for Seats: ${selectedSeats.join(', ')}! Pass ready on your digital wallet.`);
+            trigger4dxSeatRumble();
+            alert(`🎟️ 4DX VIP Tickets Confirmed for Seats: ${selectedSeats.join(', ')}! Pass ready on your digital wallet.`);
         });
     }
 
@@ -1057,6 +1222,7 @@ We'll be dancing till the break of day!</blockquote>`;
                     btn.classList.add('correct');
                     triviaPoints += 50;
                     playSpatialAtmosSwell();
+                    trigger4dxSeatRumble();
                     if (feedback) feedback.textContent = '🎉 Correct Answer! +50 Multiplex Stars awarded!';
                 } else {
                     btn.classList.add('incorrect');
